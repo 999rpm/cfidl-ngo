@@ -1,0 +1,127 @@
+---
+import { urlFor } from '../lib/sanity/image';
+
+interface Span {
+  _type: 'span';
+  text: string;
+  marks?: string[];
+}
+interface MarkDef {
+  _key: string;
+  _type: string;
+  href?: string;
+  newTab?: boolean;
+}
+interface PTBlock {
+  _type: string;
+  _key?: string;
+  style?: string;
+  listItem?: 'bullet' | 'number';
+  children?: Span[];
+  markDefs?: MarkDef[];
+  asset?: { _ref?: string; url?: string };
+  alt?: string;
+  caption?: string;
+}
+
+interface Props {
+  value?: unknown[];
+  class?: string;
+}
+const { value, class: className = '' } = Astro.props;
+const blocks = (value ?? []) as PTBlock[];
+
+function escapeHtml(str: string): string {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function escapeAttr(str: string): string {
+  return escapeHtml(str).replace(/"/g, '&quot;');
+}
+
+function renderSpans(children: Span[] = [], markDefs: MarkDef[] = []): string {
+  return children
+    .map((span) => {
+      let text = escapeHtml(span.text || '');
+      for (const mark of span.marks || []) {
+        const linkDef = markDefs.find((d) => d._key === mark && d._type === 'link');
+        if (linkDef) {
+          const target = linkDef.newTab ? ' target="_blank" rel="noopener noreferrer"' : '';
+          text = `<a href="${escapeAttr(linkDef.href || '#')}" class="link-thread text-saffron"${target}>${text}</a>`;
+        } else if (mark === 'strong') {
+          text = `<strong>${text}</strong>`;
+        } else if (mark === 'em') {
+          text = `<em>${text}</em>`;
+        }
+      }
+      return text;
+    })
+    .join('');
+}
+
+function blocksToHtml(items: PTBlock[]): string {
+  let html = '';
+  let listBuffer: { type: 'bullet' | 'number'; itemsHtml: string[] } | null = null;
+
+  const flushList = () => {
+    if (!listBuffer) return;
+    const tag = listBuffer.type === 'bullet' ? 'ul' : 'ol';
+    const cls = listBuffer.type === 'bullet' ? 'list-disc' : 'list-decimal';
+    html += `<${tag} class="${cls} pl-6 space-y-2 my-5">${listBuffer.itemsHtml
+      .map((li) => `<li>${li}</li>`)
+      .join('')}</${tag}>`;
+    listBuffer = null;
+  };
+
+  for (const block of items) {
+    if (block._type === 'image') {
+      flushList();
+      if (block.asset) {
+        const src = urlFor(block as never)
+          .width(1200)
+          .url();
+        html += `<figure class="my-8"><img src="${escapeAttr(src)}" alt="${escapeAttr(
+          block.alt || '',
+        )}" class="w-full rounded-2xl" loading="lazy" />${
+          block.caption
+            ? `<figcaption class="mt-2.5 text-center text-sm text-muted">${escapeHtml(block.caption)}</figcaption>`
+            : ''
+        }</figure>`;
+      }
+      continue;
+    }
+
+    if (block._type !== 'block') continue;
+
+    if (block.listItem) {
+      if (!listBuffer || listBuffer.type !== block.listItem) {
+        flushList();
+        listBuffer = { type: block.listItem, itemsHtml: [] };
+      }
+      listBuffer.itemsHtml.push(renderSpans(block.children, block.markDefs));
+      continue;
+    }
+
+    flushList();
+    const inner = renderSpans(block.children, block.markDefs);
+    switch (block.style) {
+      case 'h2':
+        html += `<h2 class="font-display text-2xl sm:text-3xl font-semibold text-ink mt-12 mb-4">${inner}</h2>`;
+        break;
+      case 'h3':
+        html += `<h3 class="font-display text-xl sm:text-2xl font-semibold text-ink mt-10 mb-3">${inner}</h3>`;
+        break;
+      case 'blockquote':
+        html += `<blockquote class="border-l-2 border-marigold pl-6 my-8 font-display text-xl italic leading-relaxed text-ink/80">${inner}</blockquote>`;
+        break;
+      default:
+        if (inner.trim()) html += `<p class="leading-relaxed text-ink/80 my-5">${inner}</p>`;
+    }
+  }
+  flushList();
+  return html;
+}
+
+const html = blocksToHtml(blocks);
+---
+
+<div class:list={['max-w-none', className]} set:html={html} />

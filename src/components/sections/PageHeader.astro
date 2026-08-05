@@ -1,0 +1,24 @@
+---
+import Container from '../ui/Container.astro';
+
+interface Props {
+  eyebrow?: string;
+  heading: string;
+  body?: string;
+}
+const { eyebrow, heading, body } = Astro.props;
+---
+
+<section class="bg-mist pt-40 pb-16 sm:pt-44 sm:pb-20">
+  <Container>
+    <div class="max-w-2xl" data-animate="fade-up">
+      {eyebrow && <p class="eyebrow mb-5">{eyebrow}</p>}
+      <h1
+        class="font-display text-ink text-4xl leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl"
+      >
+        {heading}
+      </h1>
+      {body && <p class="text-muted mt-6 text-lg leading-relaxed">{body}</p>}
+    </div>
+  </Container>
+</section>

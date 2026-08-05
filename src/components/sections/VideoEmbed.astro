@@ -1,0 +1,77 @@
+---
+import Icon from '../ui/Icon.astro';
+
+interface Props {
+  videoId: string;
+  title?: string;
+  class?: string;
+}
+const { videoId, title = 'Video', class: className = '' } = Astro.props;
+---
+
+<div
+  data-video-facade
+  data-video-id={videoId}
+  data-video-title={title}
+  class:list={[
+    'group bg-ink shadow-lift relative aspect-video w-full cursor-pointer overflow-hidden rounded-2xl',
+    className,
+  ]}
+  role="button"
+  tabindex="0"
+  aria-label={`Play video: ${title}`}
+>
+  <img
+    src={`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`}
+    alt={title}
+    loading="lazy"
+    class="h-full w-full object-cover opacity-90 transition-transform duration-500 group-hover:scale-105"
+  />
+  <div class="from-ink/60 absolute inset-0 bg-gradient-to-t via-transparent to-transparent"></div>
+  <div class="absolute inset-0 flex items-center justify-center">
+    <span
+      class="bg-marigold text-ink shadow-lift flex h-16 w-16 items-center justify-center rounded-full transition-transform duration-300 group-hover:scale-110"
+    >
+      <Icon name="play" class="h-7 w-7" strokeWidth={1.5} />
+    </span>
+  </div>
+</div>
+
+<script>
+  function initVideoFacades(): void {
+    document.querySelectorAll<HTMLElement>('[data-video-facade]').forEach((facade) => {
+      if (facade.dataset.bound === 'true') return;
+      facade.dataset.bound = 'true';
+
+      const load = () => {
+        const id = facade.dataset.videoId;
+        const title = facade.dataset.videoTitle || 'Video';
+        if (!id) return;
+
+        const iframe = document.createElement('iframe');
+        iframe.src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1`;
+        iframe.title = title;
+        iframe.className = 'absolute inset-0 h-full w-full rounded-2xl';
+        iframe.allow =
+          'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+        iframe.allowFullscreen = true;
+        iframe.setAttribute('frameborder', '0');
+
+        facade.replaceChildren(iframe);
+        facade.classList.remove('cursor-pointer');
+        facade.removeAttribute('role');
+        facade.removeAttribute('tabindex');
+      };
+
+      facade.addEventListener('click', load);
+      facade.addEventListener('keydown', (e) => {
+        if (e instanceof KeyboardEvent && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault();
+          load();
+        }
+      });
+    });
+  }
+
+  document.addEventListener('astro:page-load', initVideoFacades);
+</script>

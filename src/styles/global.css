@@ -1,0 +1,159 @@
+@import 'tailwindcss';
+
+/* Self-hosted fonts (no external requests, no layout-shifting FOUT) */
+@import '@fontsource-variable/fraunces';
+@import '@fontsource/manrope/400.css';
+@import '@fontsource/manrope/500.css';
+@import '@fontsource/manrope/600.css';
+@import '@fontsource/manrope/700.css';
+@import '@fontsource/manrope/800.css';
+@import '@fontsource/ibm-plex-mono/500.css';
+@import '@fontsource/ibm-plex-mono/600.css';
+
+/* ────────────────────────────────────────────────────────────────────────
+ * Design tokens
+ * A warm saffron-and-marigold palette, drawn from Bangladeshi marigold
+ * garlands and terracotta brickwork rather than a generic corporate blue.
+ * Indigo appears as saffron's colour-wheel complement, used sparingly for
+ * the Circular Model. See README for the full rationale.
+ * ────────────────────────────────────────────────────────────────────── */
+@theme {
+  --color-ink: #2a1b10;
+  --color-deep: #38190c;
+  --color-deep-light: #532810;
+  --color-saffron: #c1531a;
+  --color-saffron-light: #e8834a;
+  --color-saffron-dark: #963d10;
+  --color-marigold: #f2a53c;
+  --color-marigold-light: #f7c274;
+  --color-indigo: #2c4a63;
+  --color-brick: #b3402a;
+  --color-paddy: #5f9a52;
+  --color-mist: #fbf1e4;
+  --color-mist-alt: #f3e2c4;
+  --color-muted: #6e5a45;
+  --color-cloud: #ffffff;
+
+  --font-display: 'Fraunces Variable', ui-serif, Georgia, serif;
+  --font-body: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+
+  --shadow-soft: 0 1px 2px rgba(56, 25, 12, 0.05), 0 12px 32px -12px rgba(56, 25, 12, 0.2);
+  --shadow-lift: 0 20px 45px -18px rgba(56, 25, 12, 0.38);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-mist-alt);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    font-family: var(--font-body);
+    color: var(--color-ink);
+    background-color: var(--color-mist);
+  }
+
+  body {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.05;
+  }
+
+  ::selection {
+    background-color: var(--color-marigold);
+    color: var(--color-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-marigold);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  /* Formspree AJAX shows/hides these by toggling presence of data-fs-active,
+     per https://help.formspree.io — presence-based, not a true/false value. */
+  [data-fs-success],
+  [data-fs-error] {
+    display: none;
+  }
+  [data-fs-success][data-fs-active],
+  [data-fs-error][data-fs-active] {
+    display: flex;
+  }
+
+  /* Small mono-set label used above headings, e.g. "OUR APPROACH" */
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-saffron);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .eyebrow::before {
+    content: '';
+    display: inline-block;
+    width: 1.25rem;
+    height: 1px;
+    background: currentColor;
+  }
+
+  .eyebrow--on-dark {
+    color: var(--color-marigold-light);
+  }
+
+  /* Animated underline used for inline text links */
+  .link-thread {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    background-size: 0% 1px;
+    transition: background-size 0.3s ease;
+  }
+  .link-thread:hover,
+  .link-thread:focus-visible {
+    background-size: 100% 1px;
+  }
+
+  /* Tabular numerals for stat figures so digits don't jitter mid-count */
+  .stat-figure {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1;
+  }
+}
+
+/* Elements tagged [data-animate] are revealed on scroll by animations.ts.
+   Deliberately no CSS opacity:0 default here — GSAP sets the hidden start
+   state itself, only once it actually runs. That way, if JS fails to load
+   or is disabled, content simply renders normally instead of staying
+   invisible forever. */

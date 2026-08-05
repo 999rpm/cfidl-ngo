@@ -1,0 +1,77 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import Header from '../components/layout/Header.astro';
+import Footer from '../components/layout/Footer.astro';
+import { getSiteSettings } from '../lib/sanity/queries';
+import { urlFor } from '../lib/sanity/image';
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  image?: string;
+  transparentHeader?: boolean;
+  noIndex?: boolean;
+}
+const { title, description, image, transparentHeader = false, noIndex = false } = Astro.props;
+
+const settings = await getSiteSettings();
+const pageTitle = title === settings.orgName ? title : `${title} | ${settings.orgName}`;
+const metaDescription =
+  description || settings.defaultSeo?.metaDescription || settings.tagline || '';
+const shareImage =
+  image ||
+  (settings.defaultSeo?.shareImage?.asset
+    ? urlFor(settings.defaultSeo.shareImage).width(1200).height(630).url()
+    : undefined);
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href={canonicalURL} />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title={`${settings.orgName} — Stories`}
+      href="/rss.xml"
+    />
+    <title>{pageTitle}</title>
+    <meta name="description" content={metaDescription} />
+    {noIndex && <meta name="robots" content="noindex, nofollow" />}
+
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={metaDescription} />
+    {shareImage && <meta property="og:image" content={shareImage} />}
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={metaDescription} />
+    {shareImage && <meta name="twitter:image" content={shareImage} />}
+
+    <ClientRouter />
+  </head>
+  <body class="bg-mist font-body text-ink antialiased">
+    <a
+      href="#main"
+      class="focus:bg-saffron sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:rounded-full focus:px-5 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-white"
+    >
+      Skip to content
+    </a>
+    <Header transparent={transparentHeader} />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer />
+    <script>
+      import '../scripts/animations';
+      import '../scripts/nav';
+    </script>
+  </body>
+</html>

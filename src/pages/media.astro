@@ -1,0 +1,74 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Container from '../components/ui/Container.astro';
+import PageHeader from '../components/sections/PageHeader.astro';
+import SectionHeading from '../components/ui/SectionHeading.astro';
+import PressCard from '../components/cards/PressCard.astro';
+import PublicationCard from '../components/cards/PublicationCard.astro';
+import Icon from '../components/ui/Icon.astro';
+import { getPressItems, getPublications } from '../lib/sanity/queries';
+
+const [press, publications] = await Promise.all([getPressItems(), getPublications()]);
+---
+
+<BaseLayout title="Media" description="Press coverage, newsletters and publications from CFIDL.">
+  <PageHeader
+    eyebrow="Media"
+    heading="Press & publications"
+    body="Coverage of our work, plus our own newsletters and reports."
+  />
+
+  <section class="bg-white py-20 sm:py-24">
+    <Container>
+      <SectionHeading eyebrow="In the press" heading="What people are saying" />
+      {
+        press.length > 0 ? (
+          <div data-animate-group class="mt-10 grid gap-4 sm:grid-cols-2">
+            {press.map((item) => (
+              <div data-animate-item>
+                <PressCard item={item} />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div
+            data-animate="fade-up"
+            class="border-ink/15 bg-mist mt-10 rounded-2xl border border-dashed p-10 text-center"
+          >
+            <Icon name="calendar" class="text-saffron/40 mx-auto h-7 w-7" />
+            <p class="text-muted mt-4">
+              Press coverage will appear here — add items in Sanity Studio.
+            </p>
+          </div>
+        )
+      }
+    </Container>
+  </section>
+
+  <section class="bg-mist py-20 sm:py-24">
+    <Container>
+      <SectionHeading eyebrow="Publications" heading="Newsletters & reports" />
+      {
+        publications.length > 0 ? (
+          <div data-animate-group class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {publications.map((item) => (
+              <div data-animate-item>
+                <PublicationCard item={item} />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div
+            data-animate="fade-up"
+            class="border-ink/15 mt-10 rounded-2xl border border-dashed bg-white p-10 text-center"
+          >
+            <Icon name="download" class="text-saffron/40 mx-auto h-7 w-7" />
+            <p class="text-muted mt-4">
+              Newsletters and reports will appear here — add them in Sanity Studio.
+            </p>
+          </div>
+        )
+      }
+    </Container>
+  </section>
+</BaseLayout>

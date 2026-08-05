@@ -1,0 +1,129 @@
+---
+import Container from '../ui/Container.astro';
+import Button from '../ui/Button.astro';
+import Icon from '../ui/Icon.astro';
+import LogoMark from '../ui/LogoMark.astro';
+import { getSiteSettings, getNavigation } from '../../lib/sanity/queries';
+import { urlFor } from '../../lib/sanity/image';
+
+interface Props {
+  transparent?: boolean;
+}
+const { transparent = false } = Astro.props;
+
+const [settings, nav] = await Promise.all([getSiteSettings(), getNavigation()]);
+const hasLogo = Boolean(settings.logo?.asset);
+---
+
+<header
+  data-header
+  data-transparent={transparent ? 'true' : 'false'}
+  data-scrolled={transparent ? 'false' : 'true'}
+  class="group data-[scrolled=true]:border-ink/[0.06] data-[scrolled=true]:bg-mist/90 data-[scrolled=true]:shadow-soft fixed inset-x-0 top-0 z-50 border-b border-transparent transition-colors duration-300 data-[scrolled=true]:backdrop-blur-lg"
+>
+  <Container class="flex h-[76px] items-center justify-between">
+    <a href="/" class="flex shrink-0 items-center gap-2.5">
+      {
+        hasLogo && (
+          <img
+            src={urlFor(settings.logo).width(80).height(80).url()}
+            alt={settings.orgName}
+            class="h-8 w-8 rounded-full object-cover"
+          />
+        )
+      }
+      {!hasLogo && <LogoMark class="h-8 w-8" />}
+      <span
+        class="font-display text-ink text-lg font-semibold tracking-tight transition-colors duration-300 group-data-[scrolled=false]:text-white"
+      >
+        {settings.orgName}
+      </span>
+    </a>
+
+    <nav class="hidden items-center gap-1 lg:flex" aria-label="Primary">
+      {
+        nav.map((item) => (
+          <div class="group/item relative">
+            <a
+              href={item.href || '#'}
+              class="text-ink/80 hover:text-saffron flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium transition-colors duration-300 group-data-[scrolled=false]:text-white/85 group-data-[scrolled=false]:hover:text-white"
+            >
+              {item.label}
+              {item.children?.length ? <Icon name="chevron-down" class="h-3.5 w-3.5" /> : null}
+            </a>
+            {item.children?.length ? (
+              <div class="invisible absolute top-full left-1/2 w-64 -translate-x-1/2 pt-3 opacity-0 transition-all duration-200 group-hover/item:visible group-hover/item:opacity-100">
+                <div class="border-ink/[0.06] shadow-lift rounded-2xl border bg-white p-2">
+                  {item.children.map((child) => (
+                    <a
+                      href={child.href}
+                      class="text-ink/80 hover:bg-mist hover:text-saffron block rounded-xl px-4 py-2.5 text-sm transition-colors"
+                    >
+                      {child.label}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </div>
+        ))
+      }
+    </nav>
+
+    <div class="hidden lg:block">
+      <Button href="/get-involved" size="md">Get Involved</Button>
+    </div>
+
+    <button
+      data-nav-toggle
+      type="button"
+      aria-label="Toggle menu"
+      aria-expanded="false"
+      class="text-ink -mr-2 flex h-11 w-11 items-center justify-center rounded-full transition-colors group-data-[scrolled=false]:text-white lg:hidden"
+    >
+      <Icon name="menu" class="h-6 w-6" />
+    </button>
+  </Container>
+
+  <div
+    data-nav-panel
+    data-open="false"
+    class="bg-mist fixed inset-0 top-[76px] z-40 hidden translate-y-[-8px] overflow-y-auto opacity-0 transition-all duration-300 ease-out data-[open=true]:flex data-[open=true]:translate-y-0 data-[open=true]:flex-col data-[open=true]:opacity-100 lg:hidden"
+  >
+    <Container class="flex flex-1 flex-col gap-1 py-8">
+      {
+        nav.map((item) =>
+          item.children?.length ? (
+            <div class="border-ink/[0.06] border-b py-2">
+              <button
+                data-dropdown-toggle
+                aria-expanded="false"
+                class="font-display text-ink flex w-full items-center justify-between py-3 text-left text-xl"
+              >
+                {item.label}
+                <Icon name="chevron-down" class="h-4 w-4" />
+              </button>
+              <div class="hidden flex-col gap-1 pb-3 pl-1">
+                {item.children.map((child) => (
+                  <a href={child.href} class="text-ink/70 rounded-lg px-3 py-2.5">
+                    {child.label}
+                  </a>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <a
+              href={item.href || '#'}
+              class="border-ink/[0.06] font-display text-ink border-b py-4 text-xl"
+            >
+              {item.label}
+            </a>
+          ),
+        )
+      }
+      <div class="mt-6">
+        <Button href="/get-involved" size="lg" class="w-full"> Get Involved </Button>
+      </div>
+    </Container>
+  </div>
+</header>

@@ -1,0 +1,33 @@
+---
+import Container from '../ui/Container.astro';
+import SectionHeading from '../ui/SectionHeading.astro';
+import Button from '../ui/Button.astro';
+import StoryCard from '../cards/StoryCard.astro';
+import type { Post } from '../../lib/sanity/queries';
+
+interface Props {
+  eyebrow?: string;
+  heading: string;
+  posts: Post[];
+}
+const { eyebrow = 'Latest stories', heading, posts } = Astro.props;
+---
+
+<section class="bg-white py-24 sm:py-32">
+  <Container>
+    <div class="flex flex-wrap items-end justify-between gap-6">
+      <SectionHeading eyebrow={eyebrow} heading={heading} />
+      <Button href="/stories" variant="secondary" class="shrink-0"> All stories </Button>
+    </div>
+
+    <div data-animate-group class="mt-14 grid gap-6 md:grid-cols-2">
+      {
+        posts.slice(0, 3).map((post, i) => (
+          <div data-animate-item class={i === 0 ? 'md:col-span-2' : ''}>
+            <StoryCard post={post} featured={i === 0} />
+          </div>
+        ))
+      }
+    </div>
+  </Container>
+</section>

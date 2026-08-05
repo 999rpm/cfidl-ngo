@@ -1,0 +1,58 @@
+---
+import Container from '../ui/Container.astro';
+import SectionHeading from '../ui/SectionHeading.astro';
+import Icon from '../ui/Icon.astro';
+import type { CircularStep } from '../../lib/sanity/queries';
+
+interface Props {
+  eyebrow?: string;
+  heading: string;
+  intro?: string;
+  steps: CircularStep[];
+}
+const { eyebrow, heading, intro, steps } = Astro.props;
+---
+
+<section
+  class="from-indigo/[0.07] via-mist to-mist relative overflow-hidden bg-gradient-to-b py-24 sm:py-32"
+>
+  <Container>
+    <SectionHeading eyebrow={eyebrow} heading={heading} body={intro} />
+
+    <div data-animate-group class="mt-14 grid gap-6 lg:grid-cols-4 lg:gap-4">
+      {
+        steps.map((step, i) => (
+          <div class="relative">
+            <div
+              data-animate-item
+              class="border-ink/[0.06] shadow-soft h-full rounded-2xl border bg-white p-6"
+            >
+              <div class="flex items-center justify-between">
+                <div class="bg-indigo/15 text-indigo flex h-12 w-12 items-center justify-center rounded-full">
+                  <Icon name={step.icon} class="h-6 w-6" />
+                </div>
+                <span class="text-ink/30 font-mono text-xs">0{i + 1}</span>
+              </div>
+              <h3 class="font-display text-ink mt-5 text-lg font-semibold">{step.title}</h3>
+              <p class="text-muted mt-2 text-sm leading-relaxed">{step.description}</p>
+            </div>
+            {i < steps.length - 1 && (
+              <div class="border-ink/[0.06] bg-mist text-indigo shadow-soft absolute top-1/2 -right-4 z-10 hidden h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border lg:flex">
+                <Icon name="arrow-right" class="h-4 w-4" />
+              </div>
+            )}
+          </div>
+        ))
+      }
+    </div>
+
+    <div data-animate="fade-up" class="mt-10 flex justify-center">
+      <div
+        class="border-indigo/25 bg-indigo/10 text-indigo inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-sm font-medium"
+      >
+        <Icon name="reinvested" class="h-4 w-4" />
+        <span>...and the cycle funds the next round of toilets</span>
+      </div>
+    </div>
+  </Container>
+</section>

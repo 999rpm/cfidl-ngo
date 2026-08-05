@@ -1,0 +1,52 @@
+---
+import Icon from '../ui/Icon.astro';
+import { urlFor, hasImage } from '../../lib/sanity/image';
+import { formatDate } from '../../lib/utils';
+import type { Publication } from '../../lib/sanity/queries';
+
+interface Props {
+  item: Publication;
+}
+const { item } = Astro.props;
+const href = item.externalUrl || item.fileUrl || '#';
+const typeLabels: Record<Publication['type'], string> = {
+  newsletter: 'Newsletter',
+  report: 'Report',
+  factsheet: 'Factsheet',
+  toolkit: 'Toolkit',
+};
+---
+
+<a
+  href={href}
+  target="_blank"
+  rel="noopener noreferrer"
+  class="group border-ink/[0.06] shadow-soft hover:shadow-lift flex flex-col overflow-hidden rounded-2xl border bg-white transition-all duration-300 hover:-translate-y-1"
+>
+  <div
+    class="from-saffron/15 via-mist-alt to-marigold/15 flex aspect-[4/3] items-center justify-center bg-gradient-to-br"
+  >
+    {
+      hasImage(item.coverImage) ? (
+        <img
+          src={urlFor(item.coverImage).width(500).height(375).fit('crop').url()}
+          alt={item.title}
+          class="h-full w-full object-cover"
+          loading="lazy"
+        />
+      ) : (
+        <Icon name="download" class="text-saffron/40 h-8 w-8" />
+      )
+    }
+  </div>
+  <div class="flex flex-1 flex-col p-5">
+    <span class="eyebrow">{typeLabels[item.type]}</span>
+    <h3 class="font-display text-ink mt-3 text-base leading-snug font-semibold">{item.title}</h3>
+    {item.date && <p class="text-muted mt-2 text-xs">{formatDate(item.date)}</p>}
+    <span
+      class="link-thread text-saffron mt-auto inline-flex w-fit items-center gap-1.5 pt-4 text-sm font-semibold"
+    >
+      <Icon name="download" class="h-3.5 w-3.5" /> View
+    </span>
+  </div>
+</a>

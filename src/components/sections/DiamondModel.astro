@@ -1,0 +1,104 @@
+---
+import Container from '../ui/Container.astro';
+import SectionHeading from '../ui/SectionHeading.astro';
+import Icon from '../ui/Icon.astro';
+import type { Stakeholder } from '../../lib/sanity/queries';
+
+interface Props {
+  eyebrow?: string;
+  heading: string;
+  intro?: string;
+  stakeholders: Stakeholder[];
+}
+const { eyebrow, heading, intro, stakeholders } = Astro.props;
+
+// Percentage coordinates shared by both the connecting SVG path and the
+// card positions, so the two always line up regardless of viewport width.
+const positions = [
+  { top: 6, left: 50 }, // community  — top
+  { top: 50, left: 94 }, // financier — right
+  { top: 94, left: 50 }, // government — bottom
+  { top: 50, left: 6 }, // business  — left
+];
+const order: Stakeholder['icon'][] = ['community', 'financier', 'government', 'business'];
+const byIcon = new Map(stakeholders.map((s) => [s.icon, s]));
+const arranged = order.map((icon) => byIcon.get(icon)).filter(Boolean) as Stakeholder[];
+
+const pathD = `M ${positions[0].left} ${positions[0].top} L ${positions[1].left} ${positions[1].top} L ${positions[2].left} ${positions[2].top} L ${positions[3].left} ${positions[3].top} Z`;
+---
+
+<section class="bg-mist py-24 sm:py-32">
+  <Container>
+    <SectionHeading eyebrow={eyebrow} heading={heading} body={intro} />
+
+    {/* Mobile / tablet: simple sequential list with a stitched connector */}
+    <div class="mt-14 space-y-3 lg:hidden">
+      {
+        stakeholders.map((s, i) => (
+          <div
+            data-animate="fade-up"
+            class="border-ink/[0.06] shadow-soft relative flex gap-5 rounded-2xl border bg-white p-6"
+          >
+            <div class="bg-saffron/10 text-saffron flex h-12 w-12 shrink-0 items-center justify-center rounded-full">
+              <Icon name={s.icon} class="h-6 w-6" />
+            </div>
+            <div>
+              <h3 class="font-display text-ink text-xl font-semibold">{s.title}</h3>
+              <p class="text-muted mt-2 text-[0.95rem] leading-relaxed">{s.description}</p>
+            </div>
+            {i < stakeholders.length - 1 && (
+              <span
+                class="border-saffron/30 absolute -bottom-3 left-11 h-3 w-px border-l-2 border-dashed"
+                aria-hidden="true"
+              />
+            )}
+          </div>
+        ))
+      }
+    </div>
+
+    {/* Desktop: the actual diamond arrangement the model is named for */}
+    <div class="relative mx-auto mt-8 hidden aspect-square max-w-[640px] lg:block">
+      <svg
+        class="absolute inset-0 h-full w-full"
+        viewBox="0 0 100 100"
+        preserveAspectRatio="none"
+        aria-hidden="true"
+      >
+        <path
+          d={pathD}
+          fill="none"
+          stroke="var(--color-saffron)"
+          stroke-width="0.3"
+          stroke-dasharray="1.5 2.2"
+          opacity="0.35"></path>
+        <path
+          data-animate-line
+          d={pathD}
+          fill="none"
+          stroke="var(--color-marigold)"
+          stroke-width="0.4"
+          vector-effect="non-scaling-stroke"></path>
+      </svg>
+
+      {
+        arranged.map((s) => {
+          const pos = positions[order.indexOf(s.icon)];
+          return (
+            <div
+              data-animate="fade"
+              class="border-ink/[0.06] shadow-soft absolute w-64 -translate-x-1/2 -translate-y-1/2 rounded-2xl border bg-white p-6 text-center"
+              style={`top:${pos.top}%; left:${pos.left}%;`}
+            >
+              <div class="bg-saffron/10 text-saffron mx-auto flex h-12 w-12 items-center justify-center rounded-full">
+                <Icon name={s.icon} class="h-6 w-6" />
+              </div>
+              <h3 class="font-display text-ink mt-4 text-lg font-semibold">{s.title}</h3>
+              <p class="text-muted mt-2 text-sm leading-relaxed">{s.description}</p>
+            </div>
+          );
+        })
+      }
+    </div>
+  </Container>
+</section>

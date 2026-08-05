@@ -1,0 +1,62 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Container from '../components/ui/Container.astro';
+import PageHeader from '../components/sections/PageHeader.astro';
+import TeamGrid from '../components/sections/TeamGrid.astro';
+import PortableText from '../components/PortableText.astro';
+import Icon from '../components/ui/Icon.astro';
+import { getAboutPage, getTeamMembers, getSiteSettings } from '../lib/sanity/queries';
+
+const [about, team, settings] = await Promise.all([
+  getAboutPage(),
+  getTeamMembers(),
+  getSiteSettings(),
+]);
+---
+
+<BaseLayout title={about.seo?.metaTitle || 'About'} description={about.seo?.metaDescription}>
+  <PageHeader eyebrow={about.eyebrow} heading={about.heading} />
+
+  <section class="bg-white pb-24 sm:pb-32">
+    <Container size="narrow">
+      {
+        settings.legalName && (
+          <p data-animate="fade-up" class="eyebrow mb-6">
+            {settings.legalName}
+          </p>
+        )
+      }
+      {
+        about.missionStatement && (
+          <p data-animate="fade-up" class="font-display text-ink text-2xl leading-snug sm:text-3xl">
+            “{about.missionStatement}”
+          </p>
+        )
+      }
+
+      {
+        about.body && about.body.length > 0 && (
+          <div data-animate="fade-up" class="mt-10">
+            <PortableText value={about.body} />
+          </div>
+        )
+      }
+
+      {
+        about.focusAreas && about.focusAreas.length > 0 && (
+          <div data-animate-group class="mt-14 grid gap-6 sm:grid-cols-2">
+            {about.focusAreas.map((area) => (
+              <div data-animate-item class="border-ink/[0.06] bg-mist rounded-2xl border p-7">
+                <Icon name="sparkle" class="text-marigold h-5 w-5" />
+                <h3 class="font-display text-ink mt-4 text-lg font-semibold">{area.title}</h3>
+                <p class="text-muted mt-2 text-sm leading-relaxed">{area.description}</p>
+              </div>
+            ))}
+          </div>
+        )
+      }
+    </Container>
+  </section>
+
+  <TeamGrid heading={about.teamHeading} subheading={about.teamSubheading} members={team} />
+</BaseLayout>

@@ -1,0 +1,57 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Container from '../components/ui/Container.astro';
+import PageHeader from '../components/sections/PageHeader.astro';
+import DiamondModel from '../components/sections/DiamondModel.astro';
+import CircularModel from '../components/sections/CircularModel.astro';
+import { getApproachPage } from '../lib/sanity/queries';
+
+const approach = await getApproachPage();
+---
+
+<BaseLayout title={approach.seo?.metaTitle || 'Our Approach'} description={approach.seo?.metaDescription}>
+  <PageHeader eyebrow={approach.eyebrow} heading={approach.heading} body={approach.subheading} />
+
+  <DiamondModel
+    eyebrow="Model 1"
+    heading={approach.diamondHeading ?? 'The Diamond Model'}
+    intro={approach.diamondIntro}
+    stakeholders={approach.diamondStakeholders ?? []}
+  />
+
+  <CircularModel
+    eyebrow="Model 2"
+    heading={approach.circularHeading ?? 'The Circular Sanitation Model'}
+    intro={approach.circularIntro}
+    steps={approach.circularSteps ?? []}
+  />
+
+  {
+    approach.sdgs && approach.sdgs.length > 0 && (
+      <section class="bg-white py-20 sm:py-24">
+        <Container size="narrow" class="text-center">
+          <p data-animate="fade-up" class="eyebrow mx-auto">
+            Global goals
+          </p>
+          <p data-animate="fade-up" class="text-muted mx-auto mt-4 max-w-xl text-lg">
+            {approach.sdgIntro}
+          </p>
+          <div
+            data-animate-group
+            class="mx-auto mt-10 flex max-w-2xl flex-wrap justify-center gap-3"
+          >
+            {approach.sdgs.map((sdg) => (
+              <div
+                data-animate-item
+                class="border-ink/[0.08] bg-mist flex items-center gap-2.5 rounded-full border px-5 py-2.5"
+              >
+                <span class="font-display text-saffron text-lg font-semibold">{sdg.number}</span>
+                <span class="text-ink/70 text-sm">{sdg.title}</span>
+              </div>
+            ))}
+          </div>
+        </Container>
+      </section>
+    )
+  }
+</BaseLayout>

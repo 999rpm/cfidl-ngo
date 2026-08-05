@@ -1,0 +1,53 @@
+---
+import Container from '../ui/Container.astro';
+import Button from '../ui/Button.astro';
+import type { CtaButton } from '../../lib/sanity/queries';
+
+interface Props {
+  heading: string;
+  body?: string;
+  buttons?: CtaButton[];
+}
+const { heading, body, buttons = [] } = Astro.props;
+---
+
+<section class="bg-deep relative overflow-hidden py-24 text-white sm:py-28">
+  <svg
+    class="pointer-events-none absolute inset-0 h-full w-full opacity-[0.08]"
+    viewBox="0 0 800 300"
+    preserveAspectRatio="none"
+    aria-hidden="true"
+  >
+    <path
+      d="M-50 220C150 120 250 300 450 200S750 60 900 160"
+      stroke="var(--color-marigold)"
+      stroke-width="2"
+      fill="none"></path>
+  </svg>
+  <Container size="narrow" class="relative text-center">
+    <h2
+      data-animate="fade-up"
+      class="font-display text-3xl leading-tight font-semibold sm:text-5xl"
+    >
+      {heading}
+    </h2>
+    {
+      body && (
+        <p data-animate="fade-up" class="mx-auto mt-5 max-w-xl text-lg text-white/75">
+          {body}
+        </p>
+      )
+    }
+    {
+      buttons.length > 0 && (
+        <div data-animate="fade-up" class="mt-9 flex flex-wrap items-center justify-center gap-4">
+          {buttons.map((btn) => (
+            <Button href={btn.href} variant={btn.style || 'primary'} size="lg" onDark>
+              {btn.label}
+            </Button>
+          ))}
+        </div>
+      )
+    }
+  </Container>
+</section>

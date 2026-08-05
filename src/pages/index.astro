@@ -1,0 +1,96 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Container from '../components/ui/Container.astro';
+import SectionHeading from '../components/ui/SectionHeading.astro';
+import Hero from '../components/sections/Hero.astro';
+import ImpactStats from '../components/sections/ImpactStats.astro';
+import DiamondModel from '../components/sections/DiamondModel.astro';
+import StoriesPreview from '../components/sections/StoriesPreview.astro';
+import CtaBanner from '../components/sections/CtaBanner.astro';
+import VideoEmbed from '../components/sections/VideoEmbed.astro';
+import {
+  getHomePage,
+  getApproachPage,
+  getStats,
+  getFeaturedPosts,
+  FALLBACK_HERO_SLIDES,
+} from '../lib/sanity/queries';
+import { urlFor, hasImage } from '../lib/sanity/image';
+
+const [home, approach, headlineStats, secondaryStats, posts] = await Promise.all([
+  getHomePage(),
+  getApproachPage(),
+  getStats('headline'),
+  getStats('secondary'),
+  getFeaturedPosts(3),
+]);
+
+// Prefer real photos from Studio; fall back to placeholder stock photography
+// (see FALLBACK_HERO_SLIDES) until an editor uploads their own.
+const uploadedSlides = (home.heroSlides ?? []).filter((img) => hasImage(img));
+const heroSlides =
+  uploadedSlides.length > 0
+    ? uploadedSlides.map((img, i) => ({
+        src: urlFor(img).width(1920).height(1280).fit('crop').url(),
+        alt: img.alt || `${home.heroHeadline} — photo ${i + 1}`,
+      }))
+    : FALLBACK_HERO_SLIDES;
+---
+
+<BaseLayout
+  title={home.seo?.metaTitle || 'Home'}
+  description={home.seo?.metaDescription}
+  transparentHeader
+>
+  <Hero
+    eyebrow={home.heroEyebrow}
+    headline={home.heroHeadline}
+    subheadline={home.heroSubheadline}
+    ctas={home.heroCtas}
+    slides={heroSlides}
+  />
+
+  <section class="bg-white py-24 sm:py-32">
+    <Container>
+      {
+        home.introVideoId ? (
+          <div class="grid gap-14 lg:grid-cols-2 lg:items-center">
+            <SectionHeading
+              eyebrow={home.introEyebrow}
+              heading={home.introHeading ?? ''}
+              body={home.introBody}
+            />
+            <div data-animate="fade-up">
+              <VideoEmbed videoId={home.introVideoId} title={home.introHeading || 'Our work'} />
+            </div>
+          </div>
+        ) : (
+          <SectionHeading
+            eyebrow={home.introEyebrow}
+            heading={home.introHeading ?? ''}
+            body={home.introBody}
+            class="max-w-2xl"
+          />
+        )
+      }
+    </Container>
+  </section>
+
+  <ImpactStats
+    eyebrow={home.statsEyebrow}
+    heading={home.statsHeading ?? 'Since 2020'}
+    headlineStats={headlineStats}
+    secondaryStats={secondaryStats}
+  />
+
+  <DiamondModel
+    eyebrow={home.approachEyebrow}
+    heading={home.approachHeading ?? 'The Diamond Model'}
+    intro={home.approachBody}
+    stakeholders={approach.diamondStakeholders ?? []}
+  />
+
+  <StoriesPreview heading="From the field" posts={posts} />
+
+  <CtaBanner heading={home.ctaHeading ?? ''} body={home.ctaBody} buttons={home.ctaButtons} />
+</BaseLayout>

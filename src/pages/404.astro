@@ -1,0 +1,25 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Container from '../components/ui/Container.astro';
+import Button from '../components/ui/Button.astro';
+import LogoMark from '../components/ui/LogoMark.astro';
+---
+
+<BaseLayout title="Page not found" noIndex>
+  <section class="bg-mist flex min-h-[80vh] items-center py-32">
+    <Container size="narrow" class="text-center">
+      <LogoMark class="mx-auto h-12 w-12 opacity-60" />
+      <p class="eyebrow mx-auto mt-8">404</p>
+      <h1 class="font-display text-ink mt-4 text-4xl sm:text-5xl">
+        This page took a wrong turn somewhere
+      </h1>
+      <p class="text-muted mx-auto mt-5 max-w-md text-lg">
+        The page you're looking for doesn't exist, or may have moved. Let's get you back on track.
+      </p>
+      <div class="mt-9 flex flex-wrap items-center justify-center gap-4">
+        <Button href="/" size="lg">Back to home</Button>
+        <Button href="/contact" variant="secondary" size="lg">Contact us</Button>
+      </div>
+    </Container>
+  </section>
+</BaseLayout>

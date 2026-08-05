@@ -1,0 +1,55 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Container from '../components/ui/Container.astro';
+import PageHeader from '../components/sections/PageHeader.astro';
+import ImpactStats from '../components/sections/ImpactStats.astro';
+import CtaBanner from '../components/sections/CtaBanner.astro';
+import { getStats, getGetInvolvedPage } from '../lib/sanity/queries';
+
+const [headlineStats, secondaryStats, getInvolved] = await Promise.all([
+  getStats('headline'),
+  getStats('secondary'),
+  getGetInvolvedPage(),
+]);
+---
+
+<BaseLayout title="Our Impact" description="The numbers behind CFIDL's work since 2020.">
+  <PageHeader
+    eyebrow="Our impact"
+    heading="Progress you can measure"
+    body="Every number here represents a household, a business, or a tonne of waste that didn't end up back in the environment untreated."
+  />
+
+  <ImpactStats
+    eyebrow="Since 2020"
+    heading="The headline numbers"
+    headlineStats={headlineStats}
+    secondaryStats={secondaryStats}
+  />
+
+  <section class="bg-white py-24 sm:py-32">
+    <Container size="narrow">
+      <div data-animate="fade-up" class="text-muted space-y-6 text-lg leading-relaxed">
+        <p>
+          These figures track the sanitation systems, businesses and financing our facilitation has
+          helped bring into being — not just what we've built ourselves, but what the market now
+          sustains on its own. That distinction matters: a toilet a household paid for through a
+          loan they chose to take is more durable than one built and handed over for free.
+        </p>
+        <p>
+          We publish and refresh these numbers regularly. If you're citing a figure from this page
+          in a report or article, get in touch and we'll share the underlying source data.
+        </p>
+      </div>
+    </Container>
+  </section>
+
+  <CtaBanner
+    heading={getInvolved.heading}
+    body={getInvolved.intro}
+    buttons={[
+      { label: 'Get involved', href: '/get-involved', style: 'primary' },
+      { label: 'Contact us', href: '/contact', style: 'secondary' },
+    ]}
+  />
+</BaseLayout>

@@ -1,0 +1,47 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Container from '../components/ui/Container.astro';
+import PageHeader from '../components/sections/PageHeader.astro';
+import PortableText from '../components/PortableText.astro';
+import { getPageBySlug, getSiteSettings } from '../lib/sanity/queries';
+
+const [page, settings] = await Promise.all([getPageBySlug('privacy'), getSiteSettings()]);
+const orgLabel = settings.legalName || settings.orgName;
+---
+
+<BaseLayout
+  title={page?.seo?.metaTitle || page?.title || 'Privacy Statement'}
+  description={page?.seo?.metaDescription}
+>
+  <PageHeader eyebrow="Legal" heading={page?.title ?? 'Privacy Statement'} />
+  <section class="bg-white pb-24 sm:pb-32">
+    <Container size="narrow">
+      {
+        page?.body && page.body.length > 0 ? (
+          <PortableText value={page.body} />
+        ) : (
+          <div class="text-muted space-y-5 leading-relaxed">
+            <p class="border-marigold/30 bg-marigold/10 text-ink/80 rounded-xl border p-4 text-sm">
+              Placeholder content — replace with your real privacy policy in Sanity Studio (create a
+              "Simple Page" with the slug{' '}
+              <code class="bg-ink/5 rounded px-1.5 py-0.5 font-mono text-xs">privacy</code>). We'd
+              recommend having this reviewed by someone qualified in data protection law for your
+              jurisdiction.
+            </p>
+            <p>
+              {orgLabel} collects only the information needed to respond to enquiries submitted
+              through this site's forms — such as your name, email address and message — and to
+              send newsletter updates to people who opt in.
+            </p>
+            <p>
+              We don't sell or share your information with third parties for marketing purposes.
+              Form submissions are processed by Formspree; newsletter confirmations are sent via our
+              own email provider. You can ask us to access, correct or delete your information, or
+              unsubscribe from communications, at any time by contacting us.
+            </p>
+          </div>
+        )
+      }
+    </Container>
+  </section>
+</BaseLayout>

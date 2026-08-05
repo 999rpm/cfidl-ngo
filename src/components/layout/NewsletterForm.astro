@@ -1,0 +1,115 @@
+---
+import Icon from '../ui/Icon.astro';
+
+interface Props {
+  subheading?: string;
+  onDark?: boolean;
+}
+const { subheading, onDark = true } = Astro.props;
+---
+
+<div data-newsletter-form>
+  <form class="flex flex-col gap-3 sm:flex-row sm:gap-2" novalidate>
+    <div class="relative flex-1">
+      <label for="newsletter-email" class="sr-only">Email address</label>
+      <input
+        id="newsletter-email"
+        name="email"
+        type="email"
+        required
+        placeholder="you@example.com"
+        autocomplete="email"
+        class:list={[
+          'w-full rounded-full border px-5 py-3 text-sm transition-colors outline-none placeholder:text-current/40',
+          onDark
+            ? 'focus:border-marigold border-white/20 bg-white/5 text-white'
+            : 'border-ink/15 text-ink focus:border-saffron bg-white',
+        ]}
+      />
+      {/* Honeypot field — hidden from real visitors, catches simple bots */}
+      <input
+        type="text"
+        name="company"
+        tabindex="-1"
+        autocomplete="off"
+        class="pointer-events-none absolute top-0 left-0 h-0 w-0 opacity-0"
+        aria-hidden="true"
+      />
+      <input type="hidden" name="startedAt" value="" data-started-at />
+    </div>
+    <button
+      type="submit"
+      data-submit-btn
+      class:list={[
+        'inline-flex shrink-0 items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold transition-all duration-300 hover:-translate-y-0.5 disabled:opacity-60 disabled:hover:translate-y-0',
+        onDark
+          ? 'bg-marigold text-ink hover:bg-marigold-light'
+          : 'bg-saffron hover:bg-saffron-dark text-white',
+      ]}
+    >
+      <span data-submit-label>Subscribe</span>
+      <Icon name="arrow-right" class="h-4 w-4" />
+    </button>
+  </form>
+  <p
+    data-newsletter-message
+    role="status"
+    class:list={['mt-3 text-sm', onDark ? 'text-white/70' : 'text-muted']}
+  >
+    {subheading}
+  </p>
+</div>
+
+<script>
+  function initNewsletterForms(): void {
+    document.querySelectorAll<HTMLElement>('[data-newsletter-form]').forEach((wrapper) => {
+      if (wrapper.dataset.bound === 'true') return;
+      wrapper.dataset.bound = 'true';
+
+      const form = wrapper.querySelector('form');
+      const message = wrapper.querySelector<HTMLElement>('[data-newsletter-message]');
+      const button = wrapper.querySelector<HTMLButtonElement>('[data-submit-btn]');
+      const label = wrapper.querySelector<HTMLElement>('[data-submit-label]');
+      const startedAt = wrapper.querySelector<HTMLInputElement>('[data-started-at]');
+      const defaultMessage = message?.textContent ?? '';
+
+      if (startedAt) startedAt.value = String(Date.now());
+
+      form?.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (!button || !label || !message) return;
+
+        button.disabled = true;
+        label.textContent = 'Sending…';
+
+        try {
+          const formData = new FormData(form);
+          const res = await fetch('/api/newsletter', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+            body: JSON.stringify(Object.fromEntries(formData)),
+          });
+          const data = await res.json().catch(() => ({}));
+
+          if (res.ok && data.ok) {
+            message.textContent = "You're subscribed — check your inbox for a confirmation email.";
+            form.reset();
+          } else {
+            message.textContent =
+              data.error || 'Something went wrong. Please try again in a moment.';
+          }
+        } catch {
+          message.textContent = 'Network error — please try again.';
+        } finally {
+          button.disabled = false;
+          label.textContent = 'Subscribe';
+          setTimeout(() => {
+            if (message) message.textContent = defaultMessage;
+          }, 6000);
+        }
+      });
+    });
+  }
+
+  document.addEventListener('astro:page-load', initNewsletterForms);
+</script>

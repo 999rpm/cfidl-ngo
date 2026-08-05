@@ -1,0 +1,33 @@
+---
+import Icon from '../ui/Icon.astro';
+import { formatDate } from '../../lib/utils';
+import type { PressItem } from '../../lib/sanity/queries';
+
+interface Props {
+  item: PressItem;
+}
+const { item } = Astro.props;
+---
+
+<a
+  href={item.externalUrl || '#'}
+  target="_blank"
+  rel="noopener noreferrer"
+  class="group border-ink/[0.06] shadow-soft hover:shadow-lift flex items-start justify-between gap-4 rounded-2xl border bg-white p-6 transition-all duration-300 hover:-translate-y-0.5"
+>
+  <div>
+    <p class="text-saffron font-mono text-xs font-semibold tracking-wide uppercase">{item.source}</p>
+    <h3 class="font-display text-ink mt-2 text-lg leading-snug font-semibold">{item.title}</h3>
+    {
+      item.date && (
+        <p class="text-muted mt-2 flex items-center gap-1.5 text-xs">
+          <Icon name="calendar" class="h-3.5 w-3.5" /> {formatDate(item.date)}
+        </p>
+      )
+    }
+  </div>
+  <Icon
+    name="arrow-up-right"
+    class="text-ink/30 group-hover:text-saffron mt-1 h-5 w-5 shrink-0 transition-all duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+  />
+</a>

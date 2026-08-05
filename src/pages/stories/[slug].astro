@@ -1,0 +1,91 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Container from '../../components/ui/Container.astro';
+import PortableText from '../../components/PortableText.astro';
+import Icon from '../../components/ui/Icon.astro';
+import { urlFor, hasImage } from '../../lib/sanity/image';
+import { formatDate } from '../../lib/utils';
+import { getAllPosts, getPostBySlug } from '../../lib/sanity/queries';
+
+export async function getStaticPaths() {
+  const posts = await getAllPosts();
+  return posts.map((post) => ({ params: { slug: post.slug.current } }));
+}
+
+const { slug } = Astro.params;
+const post = await getPostBySlug(slug as string);
+---
+
+<BaseLayout
+  title={post?.seo?.metaTitle || post?.title || 'Story not found'}
+  description={post?.seo?.metaDescription || post?.excerpt}
+>
+  {
+    post ? (
+      <article>
+        <header class="bg-mist pt-40 pb-14 sm:pt-44 sm:pb-16">
+          <Container size="narrow">
+            <a
+              href="/stories"
+              data-animate="fade"
+              class="link-thread text-saffron inline-flex items-center gap-1.5 text-sm font-medium"
+            >
+              <Icon name="arrow-right" class="h-3.5 w-3.5 rotate-180" /> All stories
+            </a>
+            <div data-animate="fade-up" class="mt-6 flex flex-wrap items-center gap-3">
+              {post.categories?.map((c) => (
+                <span class="text-saffron font-mono text-xs font-semibold tracking-wide uppercase">
+                  {c.title}
+                </span>
+              ))}
+              {post.publishedAt && (
+                <span class="text-muted text-xs">{formatDate(post.publishedAt)}</span>
+              )}
+            </div>
+            <h1
+              data-animate="fade-up"
+              class="font-display text-ink mt-4 text-3xl leading-tight sm:text-5xl"
+            >
+              {post.title}
+            </h1>
+            {post.author && (
+              <p data-animate="fade-up" class="text-muted mt-5 text-sm">
+                By {post.author}
+              </p>
+            )}
+          </Container>
+        </header>
+
+        {hasImage(post.mainImage) && (
+          <Container size="narrow" class="-mt-8 sm:-mt-10">
+            <img
+              src={urlFor(post.mainImage).width(1200).height(700).fit('crop').url()}
+              alt={post.mainImage?.alt || post.title}
+              class="shadow-lift w-full rounded-2xl"
+            />
+          </Container>
+        )}
+
+        <section class="bg-white py-16 sm:py-20">
+          <Container size="narrow">
+            {post.body && post.body.length > 0 ? (
+              <PortableText value={post.body} />
+            ) : (
+              <p class="text-muted">{post.excerpt}</p>
+            )}
+          </Container>
+        </section>
+      </article>
+    ) : (
+      <section class="bg-white py-40 text-center">
+        <Container>
+          <p class="eyebrow mx-auto">404</p>
+          <h1 class="font-display text-ink mt-4 text-3xl">We couldn't find that story</h1>
+          <a href="/stories" class="link-thread text-saffron mt-6 inline-block">
+            Back to all stories
+          </a>
+        </Container>
+      </section>
+    )
+  }
+</BaseLayout>

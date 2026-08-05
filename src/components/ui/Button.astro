@@ -1,0 +1,67 @@
+---
+import Icon from './Icon.astro';
+
+interface Props {
+  href?: string;
+  type?: 'button' | 'submit';
+  variant?: 'primary' | 'secondary' | 'ghost';
+  size?: 'md' | 'lg';
+  onDark?: boolean;
+  showArrow?: boolean;
+  external?: boolean;
+  class?: string;
+  disabled?: boolean;
+}
+
+const {
+  href,
+  type = 'button',
+  variant = 'primary',
+  size = 'md',
+  onDark = false,
+  showArrow = true,
+  external = false,
+  class: className = '',
+  disabled = false,
+} = Astro.props;
+
+const base =
+  'group inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-all duration-300 ease-out focus-visible:outline-2 focus-visible:outline-offset-2';
+
+const sizes = {
+  md: 'px-5 py-2.5 text-sm',
+  lg: 'px-7 py-3.5 text-base',
+};
+
+const variants = {
+  primary: onDark
+    ? 'bg-marigold text-ink hover:bg-marigold-light hover:-translate-y-0.5 shadow-soft'
+    : 'bg-saffron text-white hover:bg-saffron-dark hover:-translate-y-0.5 shadow-soft',
+  secondary: onDark
+    ? 'border border-white/30 text-white hover:bg-white/10 hover:-translate-y-0.5'
+    : 'border border-ink/15 text-ink hover:border-saffron hover:text-saffron hover:-translate-y-0.5',
+  ghost: onDark ? 'text-white/80 hover:text-white' : 'text-saffron hover:text-saffron-dark',
+};
+
+const classes = `${base} ${sizes[size]} ${variants[variant]} ${className}`;
+const Tag = href ? 'a' : 'button';
+---
+
+<Tag
+  class={classes}
+  href={href}
+  type={!href ? type : undefined}
+  disabled={disabled || undefined}
+  target={external ? '_blank' : undefined}
+  rel={external ? 'noopener noreferrer' : undefined}
+>
+  <slot />
+  {
+    showArrow && (
+      <Icon
+        name={external ? 'arrow-up-right' : 'arrow-right'}
+        class="h-4 w-4 shrink-0 transition-transform duration-300 group-hover:translate-x-0.5"
+      />
+    )
+  }
+</Tag>

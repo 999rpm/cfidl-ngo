@@ -1,0 +1,60 @@
+---
+import Container from '../ui/Container.astro';
+import SectionHeading from '../ui/SectionHeading.astro';
+import Icon from '../ui/Icon.astro';
+import { urlFor, hasImage } from '../../lib/sanity/image';
+import type { TeamMember } from '../../lib/sanity/queries';
+
+interface Props {
+  heading?: string;
+  subheading?: string;
+  members: TeamMember[];
+}
+const { heading = 'Meet the team', subheading, members } = Astro.props;
+---
+
+<section id="team" class="bg-mist py-24 sm:py-32">
+  <Container>
+    <SectionHeading eyebrow="Our people" heading={heading} body={subheading} />
+
+    {
+      members.length > 0 ? (
+        <div data-animate-group class="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {members.map((member) => (
+            <div
+              data-animate-item
+              class="border-ink/[0.06] shadow-soft rounded-2xl border bg-white p-6 text-center"
+            >
+              <div class="bg-saffron/10 mx-auto h-20 w-20 overflow-hidden rounded-full">
+                {hasImage(member.photo) ? (
+                  <img
+                    src={urlFor(member.photo).width(160).height(160).fit('crop').url()}
+                    alt={member.name}
+                    class="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div class="text-saffron/50 flex h-full w-full items-center justify-center">
+                    <Icon name="community" class="h-8 w-8" />
+                  </div>
+                )}
+              </div>
+              <h3 class="font-display text-ink mt-4 text-lg font-semibold">{member.name}</h3>
+              <p class="text-saffron mt-1 font-mono text-xs tracking-wide uppercase">{member.role}</p>
+              {member.bio && <p class="text-muted mt-3 text-sm leading-relaxed">{member.bio}</p>}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div
+          data-animate="fade-up"
+          class="border-ink/15 mt-14 rounded-2xl border border-dashed bg-white/60 p-12 text-center"
+        >
+          <Icon name="community" class="text-saffron/40 mx-auto h-8 w-8" />
+          <p class="text-muted mt-4">
+            Team profiles are coming soon — add your team in Sanity Studio.
+          </p>
+        </div>
+      )
+    }
+  </Container>
+</section>

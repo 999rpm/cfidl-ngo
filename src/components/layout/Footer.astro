@@ -1,0 +1,170 @@
+---
+import Container from '../ui/Container.astro';
+import Icon from '../ui/Icon.astro';
+import LogoMark from '../ui/LogoMark.astro';
+import NewsletterForm from './NewsletterForm.astro';
+import { getSiteSettings, getNavigation } from '../../lib/sanity/queries';
+import { urlFor } from '../../lib/sanity/image';
+
+const [settings, nav] = await Promise.all([getSiteSettings(), getNavigation()]);
+const hasLogo = Boolean(settings.logoDark?.asset || settings.logo?.asset);
+const year = new Date().getFullYear();
+
+const socials = [
+  { key: 'facebook', href: settings.socialLinks?.facebook },
+  { key: 'x', href: settings.socialLinks?.x },
+  { key: 'linkedin', href: settings.socialLinks?.linkedin },
+  { key: 'youtube', href: settings.socialLinks?.youtube },
+  { key: 'instagram', href: settings.socialLinks?.instagram },
+].filter((s) => s.href) as {
+  key: 'facebook' | 'x' | 'linkedin' | 'youtube' | 'instagram';
+  href: string;
+}[];
+---
+
+<footer class="bg-deep relative overflow-hidden text-white/80">
+  {/* faint decorative current, echoing the hero's thread motif */}
+  <svg
+    class="pointer-events-none absolute -top-24 -right-24 h-96 w-96 opacity-[0.07]"
+    viewBox="0 0 400 400"
+    fill="none"
+    aria-hidden="true"
+  >
+    <path d="M20 200c60-80 100 80 160 0s100-80 160 0" stroke="white" stroke-width="2"></path>
+  </svg>
+
+  <Container class="relative py-16 sm:py-20">
+    <div class="grid gap-12 lg:grid-cols-[1.3fr_1fr_1fr_1.2fr]">
+      <div>
+        <a href="/" class="flex items-center gap-2.5">
+          {
+            hasLogo && (
+              <img
+                src={urlFor(settings.logoDark ?? settings.logo)
+                  .width(72)
+                  .height(72)
+                  .url()}
+                alt={settings.orgName}
+                class="h-9 w-9 rounded-full object-cover"
+              />
+            )
+          }
+          {!hasLogo && <LogoMark class="h-9 w-9" />}
+          <span class="font-display text-xl font-semibold text-white">{settings.orgName}</span>
+        </a>
+        {
+          settings.tagline && (
+            <p class="mt-4 max-w-xs text-sm leading-relaxed text-white/60">{settings.tagline}</p>
+          )
+        }
+        {
+          socials.length > 0 && (
+            <div class="mt-6 flex items-center gap-3">
+              {socials.map((s) => (
+                <a
+                  href={s.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={s.key}
+                  class="hover:border-marigold hover:text-marigold flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-white/70 transition-colors"
+                >
+                  <Icon name={s.key} class="h-4 w-4" />
+                </a>
+              ))}
+            </div>
+          )
+        }
+      </div>
+
+      <div>
+        <p class="eyebrow eyebrow--on-dark mb-4">Explore</p>
+        <ul class="space-y-3 text-sm">
+          {
+            nav.map((item) => (
+              <li>
+                <a
+                  href={item.href || item.children?.[0]?.href || '#'}
+                  class="link-thread text-white/70 hover:text-white"
+                >
+                  {item.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <div>
+        <p class="eyebrow eyebrow--on-dark mb-4">Contact</p>
+        <ul class="space-y-3 text-sm text-white/70">
+          {
+            settings.email && (
+              <li>
+                <a
+                  href={`mailto:${settings.email}`}
+                  class="link-thread inline-flex items-center gap-2 hover:text-white"
+                >
+                  <Icon name="mail" class="h-4 w-4 shrink-0" /> {settings.email}
+                </a>
+              </li>
+            )
+          }
+          {
+            settings.phone && (
+              <li class="inline-flex items-center gap-2">
+                <Icon name="phone" class="h-4 w-4 shrink-0" /> {settings.phone}
+              </li>
+            )
+          }
+          {
+            settings.address && (
+              <li class="inline-flex items-start gap-2">
+                <Icon name="map-pin" class="mt-0.5 h-4 w-4 shrink-0" />{' '}
+                <span>{settings.address}</span>
+              </li>
+            )
+          }
+        </ul>
+      </div>
+
+      <div>
+        <p class="eyebrow eyebrow--on-dark mb-4">
+          {settings.newsletterHeading || 'Stay up to date'}
+        </p>
+        <NewsletterForm onDark subheading={settings.newsletterSubheading} />
+      </div>
+    </div>
+
+    {
+      settings.partners && settings.partners.length > 0 && (
+        <div class="mt-16 flex flex-wrap items-center gap-x-10 gap-y-6 border-t border-white/10 pt-10">
+          {settings.partners.map(
+            (partner) =>
+              partner.logo?.asset && (
+                <img
+                  src={urlFor(partner.logo).height(32).url()}
+                  alt={partner.name}
+                  class="h-8 w-auto opacity-70 grayscale transition-opacity hover:opacity-100"
+                />
+              ),
+          )}
+        </div>
+      )
+    }
+
+    <div
+      class="mt-16 flex flex-col gap-4 border-t border-white/10 pt-8 text-xs text-white/50 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <p>
+        © {year}
+        {settings.legalName || settings.orgName}. All rights reserved.{
+          settings.footerNote ? ` ${settings.footerNote}` : ''
+        }
+      </p>
+      <div class="flex gap-6">
+        <a href="/privacy" class="link-thread hover:text-white/80">Privacy Statement</a>
+        <a href="/disclaimer" class="link-thread hover:text-white/80">Disclaimer</a>
+      </div>
+    </div>
+  </Container>
+</footer>

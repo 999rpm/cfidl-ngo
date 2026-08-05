@@ -1,0 +1,30 @@
+# build output
+dist/
+.output/
+.vercel/
+.netlify/
+
+# generated types
+.astro/
+
+# dependencies
+node_modules/
+
+# logs
+npm-debug.log*
+*.log
+
+# environment variables
+.env
+.env.production
+.env.local
+.env.*.local
+
+# editor
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# sanity
+.sanity/

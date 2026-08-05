@@ -1,0 +1,82 @@
+---
+import Icon from '../ui/Icon.astro';
+import { urlFor, hasImage } from '../../lib/sanity/image';
+import { formatDate } from '../../lib/utils';
+import type { Post } from '../../lib/sanity/queries';
+
+interface Props {
+  post: Post;
+  featured?: boolean;
+}
+const { post, featured = false } = Astro.props;
+const category = post.categories?.[0]?.title;
+---
+
+<a
+  href={`/stories/${post.slug.current}`}
+  class:list={[
+    'group border-ink/[0.06] shadow-soft hover:shadow-lift flex flex-col overflow-hidden rounded-2xl border bg-white transition-all duration-300 hover:-translate-y-1',
+    featured && 'md:col-span-2 md:flex-row',
+  ]}
+>
+  <div
+    class:list={[
+      'from-saffron/20 via-indigo/15 to-marigold/20 relative aspect-[16/10] shrink-0 overflow-hidden bg-gradient-to-br',
+      featured && 'md:aspect-auto md:w-1/2',
+    ]}
+  >
+    {
+      hasImage(post.mainImage) ? (
+        <img
+          src={urlFor(post.mainImage).width(700).height(460).fit('crop').url()}
+          alt={post.mainImage?.alt || post.title}
+          class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+          loading="lazy"
+        />
+      ) : (
+        <div class="flex h-full w-full items-center justify-center">
+          <Icon name="sparkle" class="text-saffron/40 h-8 w-8" />
+        </div>
+      )
+    }
+    {
+      category && (
+        <span class="text-saffron absolute top-4 left-4 rounded-full bg-white/90 px-3 py-1 font-mono text-[0.7rem] font-semibold tracking-wide uppercase">
+          {category}
+        </span>
+      )
+    }
+  </div>
+
+  <div class="flex flex-1 flex-col p-6">
+    {
+      post.publishedAt && (
+        <p class="text-muted mb-2 flex items-center gap-1.5 font-mono text-xs">
+          <Icon name="calendar" class="h-3.5 w-3.5" /> {formatDate(post.publishedAt)}
+        </p>
+      )
+    }
+    <h3
+      class:list={[
+        'font-display text-ink leading-snug font-semibold',
+        featured ? 'text-2xl' : 'text-lg',
+      ]}
+    >
+      {post.title}
+    </h3>
+    {
+      post.excerpt && (
+        <p class="text-muted mt-2.5 line-clamp-3 text-sm leading-relaxed">{post.excerpt}</p>
+      )
+    }
+    <span
+      class="link-thread text-saffron mt-auto inline-flex w-fit items-center gap-1.5 pt-5 text-sm font-semibold"
+    >
+      Read story
+      <Icon
+        name="arrow-right"
+        class="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5"
+      />
+    </span>
+  </div>
+</a>

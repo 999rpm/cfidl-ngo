@@ -1,0 +1,151 @@
+---
+import Container from '../ui/Container.astro';
+import Button from '../ui/Button.astro';
+import type { CtaButton, HeroSlide } from '../../lib/sanity/queries';
+
+interface Props {
+  eyebrow?: string;
+  headline: string;
+  subheadline?: string;
+  ctas?: CtaButton[];
+  slides?: HeroSlide[];
+}
+const { eyebrow, headline, subheadline, ctas = [], slides = [] } = Astro.props;
+
+// Each slide gets an equal share of a shared cycle, then loops. See the
+// <style> block below for how animation-delay staggers the crossfade.
+const secondsPerSlide = 6;
+const totalDuration = Math.max(slides.length, 1) * secondsPerSlide;
+---
+
+<section
+  data-hero
+  class="bg-deep relative flex min-h-[92vh] items-center overflow-hidden pt-32 pb-24 text-white"
+>
+  <div class="pointer-events-none absolute inset-0" aria-hidden="true">
+    {
+      slides.length > 0 && (
+        <div class="hero-slideshow absolute inset-0">
+          {slides.map((slide, i) => (
+            <img
+              src={slide.src}
+              alt=""
+              loading="eager"
+              fetchpriority={i === 0 ? 'high' : 'auto'}
+              class="hero-slide absolute inset-0 h-full w-full object-cover"
+              style={`animation-duration:${totalDuration}s; animation-delay:${i * secondsPerSlide}s;`}
+            />
+          ))}
+        </div>
+      )
+    }
+    {/* Warm scrim: keeps every photo on-brand and keeps hero text legible */}
+    <div class="from-deep via-deep/70 absolute inset-0 bg-gradient-to-t to-transparent"></div>
+    <div class="bg-deep/35 absolute inset-0"></div>
+    <svg
+      class="absolute inset-x-0 bottom-0 h-2/3 w-full opacity-60"
+      viewBox="0 0 1200 500"
+      preserveAspectRatio="none"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        data-hero-line
+        d="M-50 380C150 280 250 460 450 360S750 220 950 320 1150 260 1250 300"
+        stroke="var(--color-marigold)"
+        stroke-width="2"></path>
+    </svg>
+  </div>
+
+  <Container class="relative">
+    <div class="max-w-3xl">
+      {
+        eyebrow && (
+          <p data-hero-item class="eyebrow eyebrow--on-dark mb-6">
+            {eyebrow}
+          </p>
+        )
+      }
+      <h1
+        data-hero-item
+        class="font-display text-[2.5rem] leading-[1.06] tracking-tight sm:text-6xl lg:text-[4.25rem]"
+      >
+        {headline}
+      </h1>
+      {
+        subheadline && (
+          <p data-hero-item class="mt-7 max-w-xl text-lg leading-relaxed text-white/75 sm:text-xl">
+            {subheadline}
+          </p>
+        )
+      }
+      {
+        ctas.length > 0 && (
+          <div data-hero-item class="mt-10 flex flex-wrap items-center gap-4">
+            {ctas.map((cta) => (
+              <Button href={cta.href} variant={cta.style || 'primary'} size="lg" onDark>
+                {cta.label}
+              </Button>
+            ))}
+          </div>
+        )
+      }
+    </div>
+  </Container>
+
+  <div
+    data-hero-item
+    class="absolute bottom-8 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-3 sm:flex"
+    aria-hidden="true"
+  >
+    <span class="eyebrow eyebrow--on-dark text-white/40">Scroll</span>
+    <div class="h-10 w-px bg-gradient-to-b from-white/40 to-transparent"></div>
+  </div>
+</section>
+
+<style>
+  /* Pure-CSS crossfade: every slide shares one keyframe timeline and is
+     offset with animation-delay, so only one slide is visible at a time
+     and the rotation loops forever with no JS. Ken-Burns-style scale adds
+     a slow drift so even a static-feeling photo reads as "alive". */
+  .hero-slide {
+    opacity: 0;
+    animation-name: hero-crossfade;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+  }
+
+  @keyframes hero-crossfade {
+    0% {
+      opacity: 0;
+      transform: scale(1.02);
+    }
+    2% {
+      opacity: 1;
+      transform: scale(1.03);
+    }
+    14% {
+      opacity: 1;
+      transform: scale(1.09);
+    }
+    16% {
+      opacity: 0;
+      transform: scale(1.1);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(1.1);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-slide {
+      animation: none !important;
+      opacity: 0;
+      transform: none;
+    }
+    .hero-slide:first-child {
+      opacity: 1;
+    }
+  }
+</style>

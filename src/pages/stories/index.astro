@@ -1,0 +1,53 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Container from '../../components/ui/Container.astro';
+import PageHeader from '../../components/sections/PageHeader.astro';
+import StoryCard from '../../components/cards/StoryCard.astro';
+import { getAllPosts, getAllCategories } from '../../lib/sanity/queries';
+
+const [posts, categories] = await Promise.all([getAllPosts(), getAllCategories()]);
+---
+
+<BaseLayout title="Stories" description="Stories from CFIDL's programmes in the field.">
+  <PageHeader
+    eyebrow="Stories"
+    heading="From the field"
+    body="Reporting and updates from the households, businesses and districts we work alongside."
+  />
+
+  <section class="bg-white pb-24 sm:pb-32">
+    <Container>
+      {
+        categories.length > 0 && (
+          <div data-animate="fade" class="mb-12 flex flex-wrap gap-2.5">
+            <a href="/stories" class="bg-ink rounded-full px-4 py-2 text-sm font-medium text-white">
+              All
+            </a>
+            {categories.map((cat) => (
+              <a
+                href={`/stories/category/${cat.slug.current}`}
+                class="border-ink/15 text-ink/70 hover:border-saffron hover:text-saffron rounded-full border px-4 py-2 text-sm font-medium transition-colors"
+              >
+                {cat.title}
+              </a>
+            ))}
+          </div>
+        )
+      }
+
+      {
+        posts.length > 0 ? (
+          <div data-animate-group class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {posts.map((post) => (
+              <div data-animate-item>
+                <StoryCard post={post} />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p class="text-muted">No stories published yet — check back soon.</p>
+        )
+      }
+    </Container>
+  </section>
+</BaseLayout>

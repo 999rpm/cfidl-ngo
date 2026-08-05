@@ -1,0 +1,41 @@
+---
+interface Props {
+  eyebrow?: string;
+  heading: string;
+  body?: string;
+  align?: 'left' | 'center';
+  onDark?: boolean;
+  class?: string;
+}
+
+const {
+  eyebrow,
+  heading,
+  body,
+  align = 'left',
+  onDark = false,
+  class: className = '',
+} = Astro.props;
+---
+
+<div
+  class:list={['max-w-2xl', align === 'center' && 'mx-auto text-center', className]}
+  data-animate="fade-up"
+>
+  {eyebrow && <p class:list={['eyebrow mb-4', onDark && 'eyebrow--on-dark']}>{eyebrow}</p>}
+  <h2
+    class:list={[
+      'text-3xl leading-[1.08] sm:text-4xl lg:text-[2.75rem]',
+      onDark ? 'text-white' : 'text-ink',
+    ]}
+  >
+    {heading}
+  </h2>
+  {
+    body && (
+      <p class:list={['mt-4 text-lg leading-relaxed', onDark ? 'text-white/75' : 'text-muted']}>
+        {body}
+      </p>
+    )
+  }
+</div>

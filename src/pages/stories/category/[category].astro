@@ -1,0 +1,44 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Container from '../../../components/ui/Container.astro';
+import PageHeader from '../../../components/sections/PageHeader.astro';
+import StoryCard from '../../../components/cards/StoryCard.astro';
+import { getAllCategories, getPostsByCategory } from '../../../lib/sanity/queries';
+
+export async function getStaticPaths() {
+  const categories = await getAllCategories();
+  return categories.map((cat) => ({
+    params: { category: cat.slug.current },
+    props: { categoryTitle: cat.title },
+  }));
+}
+
+const { category } = Astro.params;
+const { categoryTitle } = Astro.props as { categoryTitle: string };
+const posts = await getPostsByCategory(category as string);
+---
+
+<BaseLayout title={categoryTitle} description={`Stories about ${categoryTitle}.`}>
+  <PageHeader eyebrow="Stories" heading={categoryTitle} />
+
+  <section class="bg-white pb-24 sm:pb-32">
+    <Container>
+      <a href="/stories" class="link-thread text-saffron mb-10 inline-block text-sm font-medium">
+        ← All stories
+      </a>
+      {
+        posts.length > 0 ? (
+          <div data-animate-group class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {posts.map((post) => (
+              <div data-animate-item>
+                <StoryCard post={post} />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p class="text-muted">No stories in this category yet.</p>
+        )
+      }
+    </Container>
+  </section>
+</BaseLayout>

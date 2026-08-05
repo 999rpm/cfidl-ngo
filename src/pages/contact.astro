@@ -1,0 +1,82 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Container from '../components/ui/Container.astro';
+import PageHeader from '../components/sections/PageHeader.astro';
+import ContactForm from '../components/forms/ContactForm.astro';
+import Icon from '../components/ui/Icon.astro';
+import { getContactPage, getSiteSettings } from '../lib/sanity/queries';
+
+const [contact, settings] = await Promise.all([getContactPage(), getSiteSettings()]);
+const hasMap = contact.mapLatitude != null && contact.mapLongitude != null;
+---
+
+<BaseLayout title={contact.seo?.metaTitle || 'Contact'} description={contact.seo?.metaDescription}>
+  <PageHeader eyebrow={contact.eyebrow} heading={contact.heading} body={contact.intro} />
+
+  <section class="bg-white pb-24 sm:pb-32">
+    <Container>
+      <div class="grid gap-14 lg:grid-cols-[1fr_1.4fr]">
+        <div data-animate="fade-up" class="space-y-6">
+          {
+            settings.email && (
+              <a
+                href={`mailto:${settings.email}`}
+                class="border-ink/[0.06] bg-mist hover:border-saffron flex items-start gap-4 rounded-2xl border p-6 transition-colors"
+              >
+                <Icon name="mail" class="text-saffron mt-0.5 h-5 w-5 shrink-0" />
+                <div>
+                  <p class="text-ink text-sm font-semibold">Email</p>
+                  <p class="text-muted mt-1 text-sm">{settings.email}</p>
+                </div>
+              </a>
+            )
+          }
+          {
+            settings.phone && (
+              <div class="border-ink/[0.06] bg-mist flex items-start gap-4 rounded-2xl border p-6">
+                <Icon name="phone" class="text-saffron mt-0.5 h-5 w-5 shrink-0" />
+                <div>
+                  <p class="text-ink text-sm font-semibold">Phone</p>
+                  <p class="text-muted mt-1 text-sm">{settings.phone}</p>
+                </div>
+              </div>
+            )
+          }
+          {
+            settings.address && (
+              <div class="border-ink/[0.06] bg-mist flex items-start gap-4 rounded-2xl border p-6">
+                <Icon name="map-pin" class="text-saffron mt-0.5 h-5 w-5 shrink-0" />
+                <div>
+                  <p class="text-ink text-sm font-semibold">Office</p>
+                  <p class="text-muted mt-1 text-sm">{settings.address}</p>
+                </div>
+              </div>
+            )
+          }
+          {
+            hasMap && (
+              <div class="border-ink/[0.06] shadow-soft overflow-hidden rounded-2xl border">
+                <iframe
+                  src={`https://www.google.com/maps?q=${contact.mapLatitude},${contact.mapLongitude}&z=15&output=embed`}
+                  width="100%"
+                  height="240"
+                  style="border:0; display:block;"
+                  loading="lazy"
+                  referrerpolicy="no-referrer-when-downgrade"
+                  title="Office location map"
+                />
+              </div>
+            )
+          }
+        </div>
+
+        <div
+          data-animate="fade-up"
+          class="border-ink/[0.06] bg-mist rounded-3xl border p-8 sm:p-10"
+        >
+          <ContactForm subjects={contact.formSubjects} />
+        </div>
+      </div>
+    </Container>
+  </section>
+</BaseLayout>
