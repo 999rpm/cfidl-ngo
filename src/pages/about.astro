@@ -47,7 +47,7 @@ const [about, team, settings] = await Promise.all([
           <div data-animate-group class="mt-14 grid gap-6 sm:grid-cols-2">
             {about.focusAreas.map((area) => (
               <div data-animate-item class="border-ink/[0.06] bg-mist rounded-2xl border p-7">
-                <Icon name="sparkle" class="text-marigold h-5 w-5" />
+                <Icon name="check" class="text-marigold h-5 w-5" />
                 <h3 class="font-display text-ink mt-4 text-lg font-semibold">{area.title}</h3>
                 <p class="text-muted mt-2 text-sm leading-relaxed">{area.description}</p>
               </div>

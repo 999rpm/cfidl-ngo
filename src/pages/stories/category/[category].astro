@@ -7,12 +7,13 @@ import { getAllCategories, getPostsByCategory } from '../../../lib/sanity/querie
 
 export async function getStaticPaths() {
   const categories = await getAllCategories();
-  return categories.map((cat) => ({
-    params: { category: cat.slug.current },
-    props: { categoryTitle: cat.title },
-  }));
+  return categories
+    .filter((cat) => cat.slug?.current)
+    .map((cat) => ({
+      params: { category: cat.slug.current },
+      props: { categoryTitle: cat.title },
+    }));
 }
-
 const { category } = Astro.params;
 const { categoryTitle } = Astro.props as { categoryTitle: string };
 const posts = await getPostsByCategory(category as string);

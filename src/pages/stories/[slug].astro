@@ -9,9 +9,10 @@ import { getAllPosts, getPostBySlug } from '../../lib/sanity/queries';
 
 export async function getStaticPaths() {
   const posts = await getAllPosts();
-  return posts.map((post) => ({ params: { slug: post.slug.current } }));
+  return posts
+    .filter((post) => post.slug?.current)
+    .map((post) => ({ params: { slug: post.slug.current } }));
 }
-
 const { slug } = Astro.params;
 const post = await getPostBySlug(slug as string);
 ---

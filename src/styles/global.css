@@ -1,45 +1,64 @@
 @import 'tailwindcss';
 
-/* Self-hosted fonts (no external requests, no layout-shifting FOUT) */
-@import '@fontsource-variable/fraunces';
-@import '@fontsource/manrope/400.css';
-@import '@fontsource/manrope/500.css';
-@import '@fontsource/manrope/600.css';
-@import '@fontsource/manrope/700.css';
-@import '@fontsource/manrope/800.css';
+/* Self-hosted fonts (no external requests, no layout-shifting FOUT).
+ * Roboto covers both brand type roles that can be self-hosted normally:
+ *   - 900 (Black)  → headings (h1–h4, anything using the .font-display /
+ *                    --font-display token)
+ *   - 500 (Medium) → the small "eyebrow" labels above headings
+ * IBM Plex Mono stays for tabular stat figures and inline code — that's a
+ * functional monospace use, not one of the three named brand fonts, so it's
+ * left as-is on purpose (see docs/PROJECT_GUIDE.md, "Typography").
+ * Aptos (body copy) is NOT imported here — see --font-body below for why.
+ */
+@import '@fontsource/roboto/500.css';
+@import '@fontsource/roboto/900.css';
 @import '@fontsource/ibm-plex-mono/500.css';
 @import '@fontsource/ibm-plex-mono/600.css';
 
 /* ────────────────────────────────────────────────────────────────────────
- * Design tokens
- * A warm saffron-and-marigold palette, drawn from Bangladeshi marigold
- * garlands and terracotta brickwork rather than a generic corporate blue.
- * Indigo appears as saffron's colour-wheel complement, used sparingly for
- * the Circular Model. See README for the full rationale.
+ * Design tokens — CFIDL brand
+ * Primary:    #DD5E34 (saffron/terracotta), #000000 (ink/black)
+ * Supporting: #F5D3C3 (peach/mist), #FFFFFF (white), #323232 (charcoal),
+ *             #D4C26B (muted gold/marigold)
+ * Every colour utility on the site (bg-saffron, text-marigold, border-ink…)
+ * is generated from these tokens by Tailwind v4 — change a value here and
+ * it updates everywhere that class is used. See docs/PROJECT_GUIDE.md.
  * ────────────────────────────────────────────────────────────────────── */
 @theme {
-  --color-ink: #2a1b10;
-  --color-deep: #38190c;
-  --color-deep-light: #532810;
-  --color-saffron: #c1531a;
-  --color-saffron-light: #e8834a;
-  --color-saffron-dark: #963d10;
-  --color-marigold: #f2a53c;
-  --color-marigold-light: #f7c274;
-  --color-indigo: #2c4a63;
-  --color-brick: #b3402a;
-  --color-paddy: #5f9a52;
-  --color-mist: #fbf1e4;
-  --color-mist-alt: #f3e2c4;
-  --color-muted: #6e5a45;
-  --color-cloud: #ffffff;
+  --color-ink: #000000; /* primary — headings, high-emphasis text */
+  --color-deep: #000000; /* primary — dark section backgrounds (hero, stats, CTA, footer) */
+  --color-deep-light: #1a1a1a; /* soft lift off black, used only in dark-section gradients */
+  --color-saffron: #dd5e34; /* primary accent — links, buttons, eyebrow labels */
+  --color-saffron-light: #e8896d; /* lighter tint — hover states on dark backgrounds */
+  --color-saffron-dark: #b84a29; /* darker tint — hover states on light backgrounds */
+  --color-marigold: #d4c26b; /* supporting accent — focus rings, secondary highlights */
+  --color-marigold-light: #e0d293; /* lighter tint of marigold */
+  --color-indigo: #323232; /* Circular Model accent (repurposed to charcoal — see note below) */
+  --color-brick: #b84a29; /* alias kept for safety, same as saffron-dark */
+  --color-paddy: #d4c26b; /* alias kept for safety, same as marigold */
+  --color-mist: #f5d3c3; /* supporting — page background wash */
+  --color-mist-alt: #efc3ae; /* slightly deeper mist — default borders, alt backgrounds */
+  --color-muted: #323232; /* supporting — secondary/body-adjacent text */
+  --color-cloud: #ffffff; /* supporting — white */
 
-  --font-display: 'Fraunces Variable', ui-serif, Georgia, serif;
-  --font-body: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+  --font-display:
+    'Roboto', ui-sans-serif, system-ui, sans-serif; /* → weight 900 in base layer below */
+  --font-subheading:
+    'Roboto', ui-sans-serif, system-ui, sans-serif; /* → weight 500 on .eyebrow below */
+  /* Aptos is bundled with Microsoft 365 / Windows but isn't distributed on
+     Google Fonts or Fontsource, and its free licence doesn't cover
+     self-hosting the font file on a public website (see
+     docs/LAUNCH_CHECKLIST.md, "Fonts"). Naming it first is still correct
+     and safe: a visitor who already has Aptos installed locally (default
+     on Windows 11 / Microsoft 365 since 2023) will see true Aptos, and
+     everyone else gets this close fallback stack instead. */
+  --font-body:
+    'Aptos', 'Aptos Display', 'Segoe UI Variable', 'Segoe UI', Roboto, ui-sans-serif, system-ui,
+    sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
 
-  --shadow-soft: 0 1px 2px rgba(56, 25, 12, 0.05), 0 12px 32px -12px rgba(56, 25, 12, 0.2);
-  --shadow-lift: 0 20px 45px -18px rgba(56, 25, 12, 0.38);
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.05), 0 12px 32px -12px rgba(0, 0, 0, 0.2);
+  --shadow-lift: 0 20px 45px -18px rgba(0, 0, 0, 0.38);
 }
 
 @layer base {
@@ -64,7 +83,7 @@
   h3,
   h4 {
     font-family: var(--font-display);
-    font-weight: 600;
+    font-weight: 900; /* Roboto Black */
     letter-spacing: -0.01em;
     line-height: 1.05;
   }
@@ -107,11 +126,12 @@
     display: flex;
   }
 
-  /* Small mono-set label used above headings, e.g. "OUR APPROACH" */
+  /* Small label used above headings, e.g. "OUR APPROACH" — Roboto Medium,
+     CFIDL's "subheading" weight. */
   .eyebrow {
-    font-family: var(--font-mono);
+    font-family: var(--font-subheading);
     font-size: 0.75rem;
-    font-weight: 600;
+    font-weight: 500; /* Roboto Medium */
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--color-saffron);
