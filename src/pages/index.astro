@@ -46,7 +46,7 @@ const heroSlides =
     eyebrow={home.heroEyebrow}
     headline={home.heroHeadline}
     subheadline={home.heroSubheadline}
-    ctas={home.heroCtas}
+    ctas={home.heroCtas ?? []}
     slides={heroSlides}
   />
 
@@ -92,5 +92,5 @@ const heroSlides =
 
   <StoriesPreview heading="From the field" posts={posts} />
 
-  <CtaBanner heading={home.ctaHeading ?? ''} body={home.ctaBody} buttons={home.ctaButtons} />
+  <CtaBanner heading={home.ctaHeading ?? ''} body={home.ctaBody} buttons={home.ctaButtons ?? []} />
 </BaseLayout>
