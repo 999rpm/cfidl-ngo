@@ -33,13 +33,13 @@
   --color-saffron-dark: #b84a29; /* darker tint — hover states on light backgrounds */
   --color-marigold: #d4c26b; /* supporting accent — focus rings, secondary highlights */
   --color-marigold-light: #e0d293; /* lighter tint of marigold */
-  --color-indigo: #323232; /* Circular Model accent (repurposed to charcoal — see note below) */
+  --color-indigo: #323232; /* Circular Model accent (repurposed to charcoal — see PROJECT_GUIDE.md) */
   --color-brick: #b84a29; /* alias kept for safety, same as saffron-dark */
   --color-paddy: #d4c26b; /* alias kept for safety, same as marigold */
-  --color-mist: #f5d3c3; /* supporting — page background wash */
+  --color-mist: #f5d3c3; /* supporting — small accents (badges, pills, hover fills). NOT the page background — see note below. */
   --color-mist-alt: #efc3ae; /* slightly deeper mist — default borders, alt backgrounds */
   --color-muted: #323232; /* supporting — secondary/body-adjacent text */
-  --color-cloud: #ffffff; /* supporting — white */
+  --color-cloud: #ffffff; /* supporting — white, now the page background */
 
   --font-display:
     'Roboto', ui-sans-serif, system-ui, sans-serif; /* → weight 900 in base layer below */
@@ -70,7 +70,13 @@
     scroll-behavior: smooth;
     font-family: var(--font-body);
     color: var(--color-ink);
-    background-color: var(--color-mist);
+    /* FIX (2026-08-15): was var(--color-mist) — the peach page background
+       flagged as "visually unpleasing" in this round's bug report. Mist
+       stays defined above for small accents (it's still one of your six
+       brand colours) but no longer paints the whole page. See
+       PROJECT_GUIDE.md, "Colour system", for the full list of places this
+       touched. */
+    background-color: var(--color-cloud);
   }
 
   body {

@@ -10,12 +10,14 @@ This is the *sequence*. For "what file do I touch if X breaks," see
 
 ---
 
-## 0. Apply this session's changes
+## 0. Apply this session's changes (round 1 — brand + Sanity bug)
 
 - [ ] Replace `src/styles/global.css` with the version in this delivery
       (full rebrand: colours, headings, eyebrow labels).
-- [ ] Apply the three edits in `PATCHES.md` (`stories/[slug].astro`,
-      `stories/category/[category].astro`, `about.astro`).
+- [ ] Apply the three edits in `PATCHES.md` items 1–3
+      (`stories/[slug].astro`, `stories/category/[category].astro`,
+      `index.astro`), and item 4 (`about.astro`, the sparkle icon) if you'd
+      like the AI-tell fix.
 - [ ] Update fonts in `package.json` — remove the two no-longer-used
       packages, add Roboto:
       ```bash
@@ -23,14 +25,40 @@ This is the *sequence*. For "what file do I touch if X breaks," see
       npm install @fontsource/roboto
       ```
 - [ ] Stop `npm run dev` if it's running, then start it again fresh
-      (`npm run dev`) — this matters, see step 4 in "Fix the publish
-      issue" below.
+      (`npm run dev`) — this matters, see step 1 below.
 - [ ] Visually check a few pages. If anything still shows an old orange/
       gold/brown that doesn't match `#DD5E34` / `#D4C26B`, that component
-      has a hardcoded colour I didn't spot — search the codebase for the
-      old hex values (`c1531a`, `f2a53c`, `2c4a63`, `6e5a45`) to find it.
+      has a hardcoded colour — search the codebase for the old hex values
+      (`c1531a`, `f2a53c`, `2c4a63`, `6e5a45`) to find it.
 
-## 1. Fix today's "publish breaks the site" issue
+## 0b. Apply this session's changes (round 2 — the 5 bugs from testing)
+
+- [ ] Replace `src/layouts/BaseLayout.astro`, `src/components/sections/
+      Hero.astro`, and `src/components/sections/DiamondModel.astro` with
+      the versions in this delivery (full files — safe to use even if you
+      hadn't gotten to round 1's `global.css` yet, since this delivery's
+      `global.css` supersedes that one).
+- [ ] Apply `PATCHES.md` item 5 (`Header.astro`, two `bg-mist` → `bg-white`
+      swaps).
+- [ ] Restart `npm run dev` again (the script tags in `BaseLayout.astro`
+      changed, and dev servers don't always pick up `<script>` structure
+      changes on hot-reload the way they do CSS).
+- [ ] Test the mobile hamburger menu on an actual narrow viewport (or your
+      browser's device toolbar). If it still doesn't open, open the
+      browser console (F12) before clicking it, click it, and note any red
+      error text — that pins down the real cause immediately, since this
+      round's fix addresses the most likely cause but wasn't verified
+      against your live dev server.
+- [ ] Test the homepage hero slideshow for a good ~30–60 seconds to confirm
+      the crossfade is now gap-free.
+- [ ] Check the Diamond Model section (homepage, and the Approach page) at
+      a few different browser widths — the card-overlap fix was tuned
+      against an estimated card height; if your actual stakeholder
+      descriptions run noticeably longer than the placeholder text, the top
+      card may need a little more clearance (`top: 20` → `top: 22` or so,
+      in `DiamondModel.astro`'s `positions` array).
+
+## 1. Fix the "publish breaks the site" issue (from round 1, if not yet resolved)
 
 - [ ] **Try a hard refresh first, then a full dev-server restart**
       (`Ctrl+C`, then `npm run dev` again). Sanity's own docs note that
@@ -39,12 +67,12 @@ This is the *sequence*. For "what file do I touch if X breaks," see
       the Studio"; a refresh is the documented fix. If your `.env` changed
       at all recently, only a full restart picks that up — Vite does not
       hot-reload environment variables.
-- [ ] Apply the two `getStaticPaths` patches above (belt-and-suspenders
-      fix for a real, if narrow, gap).
+- [ ] Apply the two `getStaticPaths` patches (`PATCHES.md` items 1–2) —
+      belt-and-suspenders fix for a real, if narrow, gap.
 - [ ] If it still breaks after both of those: open the browser console
       (F12 → Console) and the terminal running `npm run dev`, reproduce
       it, and save the exact error text — that will point at the real
-      cause immediately. Happy to take another pass with that in hand.
+      cause immediately.
 
 ## 2. Placeholder assets to replace
 
@@ -172,6 +200,8 @@ should go live as-is.
 - [ ] Submit both the contact form and the newsletter form for real and
       confirm the emails land.
 - [ ] Check the site on an actual phone — the mobile menu, hero
-      slideshow, and forms are the highest-risk spots for surprises.
+      slideshow, and forms are the highest-risk spots for surprises, and
+      two of those (menu, slideshow) had real bugs found by testing this
+      round.
 - [ ] Skim `/privacy` and `/disclaimer` one more time to confirm they're
       your real, reviewed text and not the placeholder notice.

@@ -57,7 +57,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
     <ClientRouter />
   </head>
-  <body class="bg-mist font-body text-ink antialiased">
+  <body class="bg-white font-body text-ink antialiased">
     <a
       href="#main"
       class="focus:bg-saffron sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:rounded-full focus:px-5 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-white"
@@ -69,8 +69,40 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
       <slot />
     </main>
     <Footer />
+    <!--
+      FIX (2026-08-15) — hamburger menu (bug #4):
+      This used to be one combined `<script type="module">` importing both
+      animations.ts and nav.ts. Static ES module imports evaluate in the
+      order they're written — animations.ts (which pulls in the third-party
+      GSAP package) first, then nav.ts. If animations.ts throws anything
+      during its own top-level evaluation, the browser aborts evaluating
+      the rest of that module graph, so nav.ts's own top-level code —
+      including the `addEventListener('astro:page-load', initNav)` line
+      that wires up the toggle button — never runs. That would explain the
+      menu doing nothing at all when tapped: not a broken click handler,
+      but one that was never attached.
+
+      I verified this isn't a CSS problem — I compiled your exact
+      `hidden … data-[open=true]:flex` class combination through the real
+      Tailwind v4 CLI and confirmed the generated rule
+      (`.data-\[open\=true\]\:flex[data-open="true"]`) has higher
+      specificity than `.hidden` and wins correctly, both by specificity
+      and by source order. So the toggle CSS itself is sound.
+
+      I can't run your actual dev server from here, so I can't 100% confirm
+      the script-coupling theory is the live cause — only that it's the
+      most mechanically-sound explanation for "nothing happens at all"
+      rather than "opens but looks wrong." Splitting the two scripts is a
+      safe change either way: it means a future problem in the animation
+      code can never again take the nav menu down with it. If the menu
+      still doesn't respond after this, open the browser console (F12 →
+      Console), click the button, and send me whatever red text appears —
+      that will point at the real cause directly.
+    -->
     <script>
       import '../scripts/animations';
+    </script>
+    <script>
       import '../scripts/nav';
     </script>
   </body>

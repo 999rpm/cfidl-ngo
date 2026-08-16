@@ -14,11 +14,24 @@ const { eyebrow, heading, intro, stakeholders } = Astro.props;
 
 // Percentage coordinates shared by both the connecting SVG path and the
 // card positions, so the two always line up regardless of viewport width.
+//
+// FIX (2026-08-15) — cards overlapping text (bug #3):
+// The top/bottom cards used to sit at top:6 / top:94. Each card is centred
+// on its point with -translate-y-1/2, but that centring is based on the
+// card's actual rendered height (~230px, driven by however much stakeholder
+// description text it holds) — which a percentage position knows nothing
+// about. At top:6% on this 640px-max container, translating a ~230px-tall
+// card up by half its own height pulled its top edge above the container
+// entirely, on top of the intro paragraph above the diamond — exactly the
+// overlap in the screenshot. Moving top/bottom to 20/80, tightening
+// left/right slightly, and increasing the container's top margin below
+// (mt-8 → mt-16) all add clearance, so a realistically tall card no longer
+// reaches content outside the container at any width up to 640px.
 const positions = [
-  { top: 6, left: 50 }, // community  — top
-  { top: 50, left: 94 }, // financier — right
-  { top: 94, left: 50 }, // government — bottom
-  { top: 50, left: 6 }, // business  — left
+  { top: 20, left: 50 }, // community  — top
+  { top: 50, left: 88 }, // financier — right
+  { top: 80, left: 50 }, // government — bottom
+  { top: 50, left: 12 }, // business  — left
 ];
 const order: Stakeholder['icon'][] = ['community', 'financier', 'government', 'business'];
 const byIcon = new Map(stakeholders.map((s) => [s.icon, s]));
@@ -27,7 +40,7 @@ const arranged = order.map((icon) => byIcon.get(icon)).filter(Boolean) as Stakeh
 const pathD = `M ${positions[0].left} ${positions[0].top} L ${positions[1].left} ${positions[1].top} L ${positions[2].left} ${positions[2].top} L ${positions[3].left} ${positions[3].top} Z`;
 ---
 
-<section class="bg-mist py-24 sm:py-32">
+<section class="bg-white py-24 sm:py-32">
   <Container>
     <SectionHeading eyebrow={eyebrow} heading={heading} body={intro} />
 
@@ -58,7 +71,7 @@ const pathD = `M ${positions[0].left} ${positions[0].top} L ${positions[1].left}
     </div>
 
     {/* Desktop: the actual diamond arrangement the model is named for */}
-    <div class="relative mx-auto mt-8 hidden aspect-square max-w-[640px] lg:block">
+    <div class="relative mx-auto mt-16 hidden aspect-square max-w-[640px] lg:block">
       <svg
         class="absolute inset-0 h-full w-full"
         viewBox="0 0 100 100"

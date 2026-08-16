@@ -12,10 +12,43 @@ interface Props {
 }
 const { eyebrow, headline, subheadline, ctas = [], slides = [] } = Astro.props;
 
-// Each slide gets an equal share of a shared cycle, then loops. See the
-// <style> block below for how animation-delay staggers the crossfade.
+// Each slide gets an equal share of a shared cycle, then loops.
 const secondsPerSlide = 6;
 const totalDuration = Math.max(slides.length, 1) * secondsPerSlide;
+
+// FIX (2026-08-15) — slideshow "lagging" (bug #2):
+// The crossfade keyframes used to be hardcoded at 2% / 14% / 16%, always,
+// regardless of slide count. But totalDuration scales with slide count
+// (N × 6s) while those percentages didn't, so the *absolute* fade-in /
+// hold / fade-out window only lined up with each 6s slot when N was about
+// 6.25. With fewer slides — the fallback set has 6, and an editor could
+// easily upload only 3–4 — every slide finished fading out before the next
+// one started fading in, leaving a real gap (both slides at opacity 0,
+// showing the plain dark background) between them. That gap is what read
+// as "lagging" / stuttering.
+//
+// Computing the percentages here from the actual slide count keeps the
+// fade-in and fade-out fixed at a real 0.6s each, with the rest of each 6s
+// slot spent fully visible — so slides now crossfade directly into each
+// other with no dead frame, however many photos are in the rotation.
+const fadeSeconds = 0.6;
+const fadeInPct = ((fadeSeconds / totalDuration) * 100).toFixed(3);
+const holdEndPct = (((secondsPerSlide - fadeSeconds) / totalDuration) * 100).toFixed(3);
+const slotEndPct = ((secondsPerSlide / totalDuration) * 100).toFixed(3);
+
+// CSS keyframe stop positions (the "37.5%" part of a keyframe rule) have to
+// be literal numbers — they can't reference a CSS custom property — so this
+// has to be generated as text and injected with set:html rather than done
+// through the scoped <style> block below.
+const heroKeyframes = `
+  @keyframes hero-crossfade {
+    0% { opacity: 0; transform: scale(1.02); }
+    ${fadeInPct}% { opacity: 1; transform: scale(1.03); }
+    ${holdEndPct}% { opacity: 1; transform: scale(1.09); }
+    ${slotEndPct}% { opacity: 0; transform: scale(1.1); }
+    100% { opacity: 0; transform: scale(1.1); }
+  }
+`;
 ---
 
 <section
@@ -93,49 +126,35 @@ const totalDuration = Math.max(slides.length, 1) * secondsPerSlide;
     </div>
   </Container>
 
+  {/*
+    FIX (2026-08-15) — bug #5: removed the "Scroll" text label. Kept the
+    fading vertical line below it as a quieter, wordless scroll affordance —
+    delete this whole block instead if you'd rather drop the indicator
+    entirely. This block was already aria-hidden, so removing the visible
+    text doesn't change anything for screen reader users.
+  */}
   <div
     data-hero-item
     class="absolute bottom-8 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-3 sm:flex"
     aria-hidden="true"
   >
-    <span class="eyebrow eyebrow--on-dark text-white/40">Scroll</span>
     <div class="h-10 w-px bg-gradient-to-b from-white/40 to-transparent"></div>
   </div>
 </section>
 
+<style set:html={heroKeyframes}></style>
+
 <style>
-  /* Pure-CSS crossfade: every slide shares one keyframe timeline and is
-     offset with animation-delay, so only one slide is visible at a time
-     and the rotation loops forever with no JS. Ken-Burns-style scale adds
-     a slow drift so even a static-feeling photo reads as "alive". */
+  /* Pure-CSS crossfade: every slide shares one keyframe timeline (generated
+     dynamically above, from the actual slide count) and is offset with
+     animation-delay, so only one slide is visible at a time and the
+     rotation loops forever with no JS. Ken-Burns-style scale adds a slow
+     drift so even a static-feeling photo reads as "alive". */
   .hero-slide {
     opacity: 0;
     animation-name: hero-crossfade;
     animation-timing-function: ease-in-out;
     animation-iteration-count: infinite;
-  }
-
-  @keyframes hero-crossfade {
-    0% {
-      opacity: 0;
-      transform: scale(1.02);
-    }
-    2% {
-      opacity: 1;
-      transform: scale(1.03);
-    }
-    14% {
-      opacity: 1;
-      transform: scale(1.09);
-    }
-    16% {
-      opacity: 0;
-      transform: scale(1.1);
-    }
-    100% {
-      opacity: 0;
-      transform: scale(1.1);
-    }
   }
 
   @media (prefers-reduced-motion: reduce) {

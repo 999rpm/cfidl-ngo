@@ -55,7 +55,7 @@ flowchart LR
 │   ├── lib/
 │   │   ├── sanity/          client.ts, image.ts, queries.ts (content + fallbacks)
 │   │   └── utils.ts
-│   ├── layouts/BaseLayout.astro   wraps every page: <head>, Header, Footer
+│   ├── layouts/BaseLayout.astro   wraps every page: <head>, Header, Footer, page scripts
 │   ├── scripts/             animations.ts (GSAP), nav.ts (mobile menu)
 │   ├── styles/global.css    ALL colours, fonts, shadows — one file
 │   └── pages/               one file per route, + pages/api/newsletter.ts
@@ -67,10 +67,13 @@ flowchart LR
 | I want to… | Edit this |
 |---|---|
 | Change a brand colour or font | `src/styles/global.css` — the `@theme` block. Every `bg-saffron`, `text-marigold`, `font-display` class site-wide reads from here; you don't need to touch component files. |
-| Fix the mobile hamburger menu (won't open/close, wrong items) | Open/close behaviour → `src/scripts/nav.ts`. Markup/layout of the menu itself → `src/components/layout/Header.astro` (the `data-nav-panel` block). Menu *items* → Studio "Navigation" doc, or `FALLBACK_NAVIGATION` in `src/lib/sanity/queries.ts` if Sanity isn't connected yet. |
+| Fix the mobile hamburger menu (won't open/close, wrong items) | **Start with `src/layouts/BaseLayout.astro`** — the two `<script>` tags right before `</body>`. If they've been merged back into one tag that imports both `animations` and `nav`, split them again first: a failure in the animations script can silently stop the nav script from ever attaching its click handler, which looks identical to "the button just does nothing." Confirmed *not* the cause: CSS — the `hidden … data-[open=true]:flex` toggle classes compile correctly (verified against the real Tailwind v4 CLI output). If the button still doesn't respond after the scripts are split, open the browser console and check for a red error first. Open/close *logic* → `src/scripts/nav.ts`. Markup/layout of the menu itself → `src/components/layout/Header.astro` (the `data-nav-panel` block). Menu *items* → Studio "Navigation" doc, or `FALLBACK_NAVIGATION` in `src/lib/sanity/queries.ts` if Sanity isn't connected yet. |
+| The hero slideshow stutters, flashes to black, or looks laggy between photos | `src/components/sections/Hero.astro` — the `heroKeyframes` template string in the frontmatter. The fade timing is computed from `slides.length` so it stays gap-free at any photo count; if it's been hand-edited back to fixed `2% / 14% / 16%` keyframe values, that's the bug — those only look right at exactly ~6 slides. |
+| Cards in the Diamond Model (or Circular Model) overlap the heading/intro text above them | `src/components/sections/DiamondModel.astro` (or `CircularModel.astro`, which I haven't personally reviewed but likely shares the same layout technique) — the `positions` array and the diamond container's `mt-*` class. Cards are absolutely positioned by percentage and centred with `-translate-y-1/2`, which doesn't know how tall a card's actual text will render — too little clearance at the top position or too little margin above the container is what causes the overlap. |
+| The page background looks like the wrong colour (e.g. still shows the peach/mist wash) | As of this session, the page background is white, set in two places: `html { background-color }` in `src/styles/global.css`, and `<body class="bg-white …">` in `src/layouts/BaseLayout.astro`. Full-width sections that also painted themselves with `bg-mist` (the Diamond Model section, two spots in `Header.astro`) were switched to white too — see `PATCHES.md` item 5 for the two in `Header.astro`. Small accent uses of mist (badges, dropdown hover fills, SDG pills on the Approach page) were deliberately left alone. |
 | Change what's in the header/footer nav | Studio → Navigation document (once connected), or `FALLBACK_NAVIGATION` in `src/lib/sanity/queries.ts`. |
 | Change the logo | Studio → Site Settings → Logo. The SVG placeholder shown until then lives at `src/components/ui/LogoMark.astro`. |
-| Change hero homepage photos | Studio → Home Page → Hero background slideshow. Placeholder set: `FALLBACK_HERO_SLIDES` in `src/lib/sanity/queries.ts`. Crossfade timing/animation → `<style>` block inside `src/components/sections/Hero.astro`. |
+| Change hero homepage photos | Studio → Home Page → Hero background slideshow. Placeholder set: `FALLBACK_HERO_SLIDES` in `src/lib/sanity/queries.ts`. Crossfade timing/animation → `heroKeyframes` in `src/components/sections/Hero.astro` (see slideshow row above before hand-editing this). |
 | Change impact numbers (the counting stats) | Studio → Impact Stat documents (`group` = headline or secondary). Placeholders: `FALLBACK_STATS_HEADLINE` / `FALLBACK_STATS_SECONDARY` in `queries.ts`. Count-up animation logic → `src/scripts/animations.ts` (`initCounters`). |
 | Add a whole new page (e.g. "Careers") | Three steps: 1) new schema in `schemaTypes/documents/`, register it in `schemaTypes/index.ts` and add it to `structure.ts` if it should appear in the Studio sidebar. 2) a query + fallback in `src/lib/sanity/queries.ts`. 3) a new `.astro` file in `src/pages/`. |
 | Add a new content field to an existing page | Add the field in the matching `schemaTypes/documents/*.ts` file, add it to the GROQ projection *and* the TypeScript interface *and* the `FALLBACK_*` constant in `queries.ts`, then read it in the relevant `.astro` page/component. |
@@ -85,7 +88,7 @@ flowchart LR
 | Something Sanity-related is broken across the *whole* site (header/footer look wrong on every page) | Check `src/lib/sanity/client.ts` and `.env` first — `getSiteSettings()`/`getNavigation()` run on every page via `Header.astro`/`Footer.astro`, so a connection problem shows up everywhere at once. |
 | Something is broken on *one* page only | Check that page's file in `src/pages/`, and whichever `src/components/sections/*` it imports — the bug is almost always in one of those two places. |
 
-## Typography system (this session)
+## Typography system
 
 Three brand roles, implemented with two font families:
 
@@ -105,7 +108,7 @@ Three brand roles, implemented with two font families:
   one inline `<code>` snippet, which is a functional monospace need rather
   than one of the three named brand fonts.
 
-## Colour system (this session)
+## Colour system
 
 All colours are CSS custom properties in the `@theme` block of
 `src/styles/global.css`; Tailwind v4 turns each `--color-x` into a full set
@@ -116,19 +119,32 @@ of utility classes (`bg-x`, `text-x`, `border-x`, `bg-x/50`, …) automatically.
 | `--color-ink` / `--color-deep` | `#000000` | Headings & high-emphasis text / dark section backgrounds (hero, stats, CTA banner, footer) |
 | `--color-saffron` | `#DD5E34` | Primary accent — links, buttons, eyebrow text |
 | `--color-marigold` | `#D4C26B` | Secondary accent — focus rings, on-dark eyebrow text |
-| `--color-mist` | `#F5D3C3` | Page background wash |
+| `--color-mist` | `#F5D3C3` | Small accents only — badges, dropdown hover fills, SDG pills. **Not** the page background as of this session (see below). |
+| `--color-cloud` | `#FFFFFF` | Page background, plus any section/card that needs plain white |
 | `--color-muted` | `#323232` | Secondary/body-adjacent text |
-| `--color-cloud` | `#FFFFFF` | White |
 
-`--color-indigo` (the Circular Model's accent colour) was repointed to
-`#323232` (charcoal) rather than left as an off-brand blue, so the Circular
-Model still reads as visually distinct from the Diamond Model (which uses
+`--color-indigo` (the Circular Model's accent colour) is repointed to
+`#323232` (charcoal) rather than an off-brand blue, so the Circular Model
+still reads as visually distinct from the Diamond Model (which uses
 saffron) without introducing a seventh colour outside your palette.
 `--color-brick` and `--color-paddy` are kept as aliases pointing at
 saffron-dark/marigold respectively, purely so nothing breaks if a component
-I didn't personally review still references them.
+that hasn't been personally reviewed still references them.
 
-If anything on the site still shows an old colour after you apply the
-update, that component has a hardcoded value rather than a token — search
-the codebase for the old hex codes (`c1531a`, `f2a53c`, `2c4a63`, `6e5a45`)
-to find it.
+**Page background, updated this session:** mist (`#F5D3C3`) was originally
+used broadly as a page-background wash — the `<html>` background, the
+`<body>` class, and several full-width sections. Flagged as "visually
+unpleasing" at that scale, so it's been replaced with white (`--color-cloud`)
+everywhere it was painting a large area: `html`/`body` in
+`global.css`/`BaseLayout.astro`, the Diamond Model section, and two spots in
+`Header.astro` (the scrolled-state header tint and the mobile nav panel —
+see `PATCHES.md` item 5). Mist itself is still defined and still used for
+small accents, since it's one of your six named brand colours — it just no
+longer dominates the page. If you want it removed even from those small
+accent spots, or want it back as the page background, search the codebase
+for `bg-mist` to find every remaining use.
+
+If anything on the site still shows an old (pre-rebrand) colour — an
+orange/gold/brown that isn't `#DD5E34` or `#D4C26B` — that component has a
+hardcoded value rather than a token. Search the codebase for the old hex
+codes (`c1531a`, `f2a53c`, `2c4a63`, `6e5a45`) to find it.
