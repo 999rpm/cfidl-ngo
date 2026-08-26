@@ -1,26 +1,33 @@
-# Patches — apply these by hand
+# Patches — status
 
-These are small, surgical edits to files I could only see in part (via
-project search, not your live repo — see `SESSION_LOG.md` for why). Rather
-than reconstruct and hand back whole files I might get subtly wrong, here's
-exactly what to find and what to change.
-
-Items 1–4 are from the first round (struck through below — skip them if
-you already applied them; harmless to re-check if you're not sure). Item 5
-is new this round.
+Rounds 1 and 2 gave these as small, surgical find/replace edits because
+those sessions only had partial visibility into your repo (project
+knowledge search, not the full source). **Round 3 had the complete,
+current contents of every file pasted directly into the conversation**, so
+I could check each item against the real thing instead of trusting that it
+had been applied. All five are confirmed live in the code you shared.
 
 ---
 
-## ~~1. `src/pages/stories/[slug].astro` — harden `getStaticPaths`~~
+## ✅ 1. `src/pages/stories/[slug].astro` — harden `getStaticPaths`
 
-~~**Find:**~~
+**VERIFIED APPLIED.** The file filters on `post.slug?.current` before
+mapping, exactly as specified below.
+
+<details>
+<summary>What this patch was</summary>
+
+**Find:**
+
 ```ts
 export async function getStaticPaths() {
   const posts = await getAllPosts();
   return posts.map((post) => ({ params: { slug: post.slug.current } }));
 }
 ```
-~~**Replace with:**~~
+
+**Replace with:**
+
 ```ts
 export async function getStaticPaths() {
   const posts = await getAllPosts();
@@ -30,9 +37,17 @@ export async function getStaticPaths() {
 }
 ```
 
-## ~~2. `src/pages/stories/category/[category].astro` — same fix~~
+</details>
 
-~~**Find:**~~
+## ✅ 2. `src/pages/stories/category/[category].astro` — same fix
+
+**VERIFIED APPLIED.** Same `.filter(...)` guard present before the map.
+
+<details>
+<summary>What this patch was</summary>
+
+**Find:**
+
 ```ts
 export async function getStaticPaths() {
   const categories = await getAllCategories();
@@ -42,7 +57,9 @@ export async function getStaticPaths() {
   }));
 }
 ```
-~~**Replace with:**~~
+
+**Replace with:**
+
 ```ts
 export async function getStaticPaths() {
   const categories = await getAllCategories();
@@ -55,108 +72,140 @@ export async function getStaticPaths() {
 }
 ```
 
-**Why these two:** every other data access in this codebase is defensive —
-`?? []`, `.filter(hasImage)`, optional chaining everywhere. These two
-`getStaticPaths` functions are the one place that isn't. Sanity's Studio
-normally blocks publishing a Story or Category without a slug, so this is
-belt-and-suspenders rather than a guaranteed smoking gun — but it's cheap
-and correct.
+</details>
 
-## ~~3. `src/pages/index.astro` — the "publish breaks the site" bug~~
+**Why these two mattered:** every other data access in this codebase is
+defensive — `?? []`, `.filter(hasImage)`, optional chaining everywhere.
+These two `getStaticPaths` functions were the one place that wasn't.
 
-~~Confirmed from a live error (`Cannot read properties of null (reading
-'length')` in `Hero.astro`). `Astro.props` destructuring defaults
-(`ctas = []`) only apply when a prop is `undefined` — Sanity's GROQ returns
-`null` for an optional array field that was never touched on the document,
-which skips the default and crashes on `.length`.~~
+## ✅ 3. `src/pages/index.astro` — the "publish breaks the site" bug
 
-~~**Find:**~~
+**VERIFIED APPLIED.** Both `ctas={home.heroCtas ?? []}` and
+`buttons={home.ctaButtons ?? []}` are present.
+
+<details>
+<summary>What this patch was</summary>
+
+Root-caused to a live error (`Cannot read properties of null (reading
+'length')` in `Hero.astro:83`): `Astro.props` destructuring defaults
+(`ctas = []`) only catch `undefined`, but GROQ returns `null` for an
+optional array field left untouched on a document.
+
+**Find:**
+
 ```astro
-  <Hero
-    eyebrow={home.heroEyebrow}
-    headline={home.heroHeadline}
-    subheadline={home.heroSubheadline}
-    ctas={home.heroCtas}
-    slides={heroSlides}
-  />
-```
-~~**Replace with:**~~
-```astro
-  <Hero
-    eyebrow={home.heroEyebrow}
-    headline={home.heroHeadline}
-    subheadline={home.heroSubheadline}
-    ctas={home.heroCtas ?? []}
-    slides={heroSlides}
-  />
+ctas={home.heroCtas}
 ```
 
-~~**Find:**~~
+**Replace with:**
+
 ```astro
-  <CtaBanner heading={home.ctaHeading ?? ''} body={home.ctaBody} buttons={home.ctaButtons} />
-```
-~~**Replace with:**~~
-```astro
-  <CtaBanner heading={home.ctaHeading ?? ''} body={home.ctaBody} buttons={home.ctaButtons ?? []} />
+ctas={home.heroCtas ?? []}
 ```
 
-Not personally verified, but still worth watching for the identical
-symptom: `getInvolvedPage.ways` (`get-involved.astro`) and
-`contactPage.formSubjects` (passed into `ContactForm.astro`) — I still
-haven't seen either file's full source, so I can't confirm whether they're
-guarded the same way.
+**Find:**
 
-## ~~4. `src/pages/about.astro` — swap the sparkle icon~~
-
-~~**Find:**~~
 ```astro
-<Icon name="sparkle" class="text-marigold h-5 w-5" />
-```
-~~**Replace with:**~~
-```astro
-<Icon name="check" class="text-marigold h-5 w-5" />
+<CtaBanner heading={home.ctaHeading ?? ''} body={home.ctaBody} buttons={home.ctaButtons} />
 ```
 
-~~This is inside the "Focus areas" cards. A sparkle/star glyph is one of
-the most recognisable "AI-generated" visual shorthands right now, so I
-swapped it for the plainer checkmark that's already in your icon set.~~
+**Replace with:**
 
-If you haven't applied this yet, **it's still open** — I couldn't confirm
-either way from project search alone, so it's struck through only in the
-sense that the instructions haven't changed since round 1, not because I
-verified it's live. Same for items 1–3.
+```astro
+<CtaBanner heading={home.ctaHeading ?? ''} body={home.ctaBody} buttons={home.ctaButtons ?? []} />
+```
+
+</details>
+
+## ✅ 4. `src/pages/about.astro` — swap the sparkle icon
+
+**VERIFIED APPLIED.** Focus-area cards render `<Icon name="check" .../>`.
+
+<details>
+<summary>What this patch was</summary>
+
+**Find:** `<Icon name="sparkle" class="text-marigold h-5 w-5" />`
+**Replace with:** `<Icon name="check" class="text-marigold h-5 w-5" />`
+
+A sparkle/star glyph is one of the more recognisable "AI-generated
+landing page" visual shorthands, so it was swapped for the plainer
+checkmark already in the icon set. (Round 3 found three more `sparkle`
+uses this patch didn't cover — see `SESSION_LOG.md`, Round 3, "AI-tell
+cleanup, continued.")
+</details>
+
+## ✅ 5. `src/components/layout/Header.astro` — two `mist` → `white` swaps
+
+**VERIFIED APPLIED as of the Round 2 delivery.** Note: `Header.astro` has
+since been **fully replaced again in Round 3** for the hamburger-menu
+containing-block fix — that new full file still contains both `bg-white`
+swaps below, so nothing here regressed, but this patch's specific
+find/replace text no longer matches the current file (the surrounding
+markup changed shape). Treat this item as historical; if you need to
+re-apply anything to `Header.astro`, use the Round 3 full file instead of
+this patch.
+
+<details>
+<summary>What this patch was</summary>
+
+Part of "use white as the page background instead of #F5D3C3."
+
+**Find:**
+
+```astro
+class="group data-[scrolled=true]:border-ink/[0.06] data-[scrolled=true]:bg-mist/90
+data-[scrolled=true]:shadow-soft fixed inset-x-0 top-0 z-50 border-b border-transparent
+transition-colors duration-300 data-[scrolled=true]:backdrop-blur-lg"
+```
+
+**Replace with:**
+
+```astro
+class="group data-[scrolled=true]:border-ink/[0.06] data-[scrolled=true]:bg-white/90
+data-[scrolled=true]:shadow-soft fixed inset-x-0 top-0 z-50 border-b border-transparent
+transition-colors duration-300 data-[scrolled=true]:backdrop-blur-lg"
+```
+
+**Find:**
+
+```astro
+class="bg-mist fixed inset-0 top-[76px] z-40 hidden translate-y-[-8px] overflow-y-auto opacity-0
+transition-all duration-300 ease-out data-[open=true]:flex data-[open=true]:translate-y-0
+data-[open=true]:flex-col data-[open=true]:opacity-100 lg:hidden"
+```
+
+**Replace with:**
+
+```astro
+class="bg-white fixed inset-0 top-[76px] z-40 hidden translate-y-[-8px] overflow-y-auto opacity-0
+transition-all duration-300 ease-out data-[open=true]:flex data-[open=true]:translate-y-0
+data-[open=true]:flex-col data-[open=true]:opacity-100 lg:hidden"
+```
+
+</details>
 
 ---
 
-## 5. `src/components/layout/Header.astro` — swap two more `mist` backgrounds to white
+## Round 3 — why there are no new numbered patches here
 
-New this round, part of bug #1 ("use white as the page background instead
-of #F5D3C3"). `global.css` and `DiamondModel.astro` (delivered as full
-files this round) handle the page body and the Diamond Model section —
-these two spots in the header were the remaining large, full-width
-`bg-mist` uses I found. Small accent uses of mist (badges, hover fills on
-nav-dropdown links, the SDG pills on the Approach page) were left as-is —
-mist is still one of your six brand colours, just no longer used at
-page-background scale. Say the word if you'd rather see those go too.
+Every change in Round 3 is delivered as a **full file**, not a patch —
+listed in `SESSION_LOG.md` under "Delivered in Round 3." That's a
+deliberate change, not an oversight: patches existed specifically because
+Rounds 1–2 only had partial visibility into your repo (project knowledge
+search returns excerpts, not guaranteed-complete files), so a targeted
+find/replace was the lowest-risk way to change a file without risking
+silently dropping code that was never seen. Round 3 had the complete,
+current contents of the whole repository pasted directly into the
+conversation, so that constraint no longer applies — every file below was
+checked and rewritten against its real, full content, and you can replace
+each one wholesale with no find/replace step needed:
 
-**Find:**
-```astro
-  class="group data-[scrolled=true]:border-ink/[0.06] data-[scrolled=true]:bg-mist/90 data-[scrolled=true]:shadow-soft fixed inset-x-0 top-0 z-50 border-b border-transparent transition-colors duration-300 data-[scrolled=true]:backdrop-blur-lg"
-```
-**Replace with:**
-```astro
-  class="group data-[scrolled=true]:border-ink/[0.06] data-[scrolled=true]:bg-white/90 data-[scrolled=true]:shadow-soft fixed inset-x-0 top-0 z-50 border-b border-transparent transition-colors duration-300 data-[scrolled=true]:backdrop-blur-lg"
-```
+`Header.astro`, `nav.ts`, `favicon.svg`, `Icon.astro`, `ContactForm.astro`,
+`get-involved.astro`, `StoryCard.astro`, `getInvolvedPage.ts`,
+`queries.ts`, `env.d.ts`, `PortableText.astro`, `package.json`.
 
-**Find:**
-```astro
-    class="bg-mist fixed inset-0 top-[76px] z-40 hidden translate-y-[-8px] overflow-y-auto opacity-0 transition-all duration-300 ease-out data-[open=true]:flex data-[open=true]:translate-y-0 data-[open=true]:flex-col data-[open=true]:opacity-100 lg:hidden"
-```
-**Replace with:**
-```astro
-    class="bg-white fixed inset-0 top-[76px] z-40 hidden translate-y-[-8px] overflow-y-auto opacity-0 transition-all duration-300 ease-out data-[open=true]:flex data-[open=true]:translate-y-0 data-[open=true]:flex-col data-[open=true]:opacity-100 lg:hidden"
-```
-
-The second one is the mobile nav panel — worth applying together with the
-`BaseLayout.astro` script-split fix (delivered as a full file this round)
-since both touch the mobile menu; test them together after applying.
+If a future session goes back to partial visibility (e.g. picking this up
+in a fresh chat without re-pasting the full repo), it's reasonable for
+this file to start accumulating numbered patches again — same rule as
+before applies: full files only for what's been seen in full, patches for
+everything else.

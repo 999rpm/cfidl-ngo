@@ -46,9 +46,25 @@ export default defineType({
           fields: [
             { name: 'title', title: 'Title', type: 'string' },
             { name: 'description', title: 'Description', type: 'text', rows: 3 },
+            {
+              name: 'icon',
+              title: 'Icon',
+              type: 'string',
+              description:
+                'Same icon set as the Diamond Model stakeholders, so a funder, a partner business etc. reads consistently across the site.',
+              options: {
+                list: [
+                  { title: 'Community (people)', value: 'community' },
+                  { title: 'Business (tools)', value: 'business' },
+                  { title: 'Financier (coins)', value: 'financier' },
+                  { title: 'Government (institution)', value: 'government' },
+                ],
+              },
+              initialValue: 'community',
+            },
             { name: 'cta', title: 'Button', type: 'ctaButton' },
           ],
-          preview: { select: { title: 'title' } },
+          preview: { select: { title: 'title', subtitle: 'icon' } },
         },
       ],
       initialValue: [
@@ -56,18 +72,21 @@ export default defineType({
           title: 'Fund a programme',
           description:
             'Grants and blended finance let us reach the next district faster. Talk to us about current funding gaps.',
+          icon: 'financier',
           cta: { label: 'Discuss funding', href: '/contact', style: 'primary' },
         },
         {
           title: 'Partner with us',
           description:
             'Financial institutions, sanitation businesses and local government all plug into the Diamond Model directly.',
+          icon: 'business',
           cta: { label: 'Explore partnership', href: '/contact', style: 'secondary' },
         },
         {
           title: 'Share your expertise',
           description:
             'Researchers and technical specialists in WASH, microfinance or circular economy — we want to hear from you.',
+          icon: 'community',
           cta: { label: 'Get in touch', href: '/contact', style: 'secondary' },
         },
       ],

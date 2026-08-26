@@ -152,6 +152,8 @@ export interface ContactPage {
 export interface GetInvolvedWay {
   title: string;
   description: string;
+  /** Reuses the Diamond Model stakeholder icon set — see schemaTypes/documents/getInvolvedPage.ts. */
+  icon?: 'community' | 'business' | 'financier' | 'government';
   cta?: CtaButton;
 }
 export interface GetInvolvedPage {
@@ -439,18 +441,21 @@ export const FALLBACK_GET_INVOLVED_PAGE: GetInvolvedPage = {
       title: 'Fund a programme',
       description:
         'Grants and blended finance let us reach the next district faster. Talk to us about current funding gaps.',
+      icon: 'financier',
       cta: { label: 'Discuss funding', href: '/contact', style: 'primary' },
     },
     {
       title: 'Partner with us',
       description:
         'Financial institutions, sanitation businesses and local government all plug into the Diamond Model directly.',
+      icon: 'business',
       cta: { label: 'Explore partnership', href: '/contact', style: 'secondary' },
     },
     {
       title: 'Share your expertise',
       description:
         'Researchers and technical specialists in WASH, microfinance or circular economy — we want to hear from you.',
+      icon: 'community',
       cta: { label: 'Get in touch', href: '/contact', style: 'secondary' },
     },
   ],
@@ -577,6 +582,9 @@ export const getContactPage = () =>
     FALLBACK_CONTACT_PAGE,
   );
 
+// Note: `ways` isn't given its own {..} projection, so GROQ returns every
+// field on each way object as-is — that's why adding `icon` to the schema
+// (schemaTypes/documents/getInvolvedPage.ts) didn't require a change here.
 export const getGetInvolvedPage = () =>
   sanityFetch<GetInvolvedPage>(
     `*[_type == "getInvolvedPage"][0]{ eyebrow, heading, intro, ways, seo }`,

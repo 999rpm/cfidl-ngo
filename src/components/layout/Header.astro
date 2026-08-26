@@ -19,76 +19,123 @@ const hasLogo = Boolean(settings.logo?.asset);
   data-header
   data-transparent={transparent ? 'true' : 'false'}
   data-scrolled={transparent ? 'false' : 'true'}
-  class="group data-[scrolled=true]:border-ink/[0.06] data-[scrolled=true]:bg-mist/90 data-[scrolled=true]:shadow-soft fixed inset-x-0 top-0 z-50 border-b border-transparent transition-colors duration-300 data-[scrolled=true]:backdrop-blur-lg"
+  class="group fixed inset-x-0 top-0 z-50"
 >
-  <Container class="flex h-[76px] items-center justify-between">
-    <a href="/" class="flex shrink-0 items-center gap-2.5">
-      {
-        hasLogo && (
-          <img
-            src={urlFor(settings.logo).width(80).height(80).url()}
-            alt={settings.orgName}
-            class="h-8 w-8 rounded-full object-cover"
-          />
-        )
-      }
-      {!hasLogo && <LogoMark class="h-8 w-8" />}
-      <span
-        class="font-display text-ink text-lg font-semibold tracking-tight transition-colors duration-300 group-data-[scrolled=false]:text-white"
-      >
-        {settings.orgName}
-      </span>
-    </a>
+  {
+    /*
+      FIX (2026-08-16) — hamburger menu breaking after scroll:
+      The scrolled-state background (including `backdrop-blur-lg`) used to
+      live directly on this <header>. backdrop-filter — like filter,
+      transform and perspective — makes an element the *containing block*
+      for any position:fixed descendant (confirmed against the CSS Filter
+      Effects spec text itself: a non-none backdrop-filter "results in the
+      creation of both a stacking context and a Containing Block for
+      absolute and fixed position descendants"). So the instant the header
+      blurred on scroll, the fixed mobile nav panel below stopped sizing
+      itself against the viewport and started sizing itself against this
+      76px-tall bar instead — collapsing it to effectively no visible area
+      while it was still position:fixed and still capturing clicks. That's
+      exactly "menu doesn't open, and now nothing else on the page
+      responds either."
 
-    <nav class="hidden items-center gap-1 lg:flex" aria-label="Primary">
-      {
-        nav.map((item) => (
-          <div class="group/item relative">
-            <a
-              href={item.href || '#'}
-              class="text-ink/80 hover:text-saffron flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium transition-colors duration-300 group-data-[scrolled=false]:text-white/85 group-data-[scrolled=false]:hover:text-white"
-            >
-              {item.label}
-              {item.children?.length ? <Icon name="chevron-down" class="h-3.5 w-3.5" /> : null}
-            </a>
-            {item.children?.length ? (
-              <div class="invisible absolute top-full left-1/2 w-64 -translate-x-1/2 pt-3 opacity-0 transition-all duration-200 group-hover/item:visible group-hover/item:opacity-100">
-                <div class="border-ink/[0.06] shadow-lift rounded-2xl border bg-white p-2">
-                  {item.children.map((child) => (
-                    <a
-                      href={child.href}
-                      class="text-ink/80 hover:bg-mist hover:text-saffron block rounded-xl px-4 py-2.5 text-sm transition-colors"
-                    >
-                      {child.label}
-                    </a>
-                  ))}
+      Fix: keep backdrop-blur (and any future transform/filter) off
+      <header> itself, and put it on this inner bar instead. The mobile
+      nav panel further down stays a direct child of the filter-free
+      <header>, so it keeps sizing itself against the real viewport at
+      every scroll position. See PROJECT_GUIDE.md, "Mobile menu", for the
+      source discussion.
+    */
+  }
+  <div
+    class="group-data-[scrolled=true]:border-ink/[0.06] group-data-[scrolled=true]:bg-white/90 group-data-[scrolled=true]:shadow-soft group-data-[scrolled=true]:backdrop-blur-lg border-b border-transparent transition-colors duration-300"
+  >
+    <Container class="flex h-[76px] items-center justify-between">
+      <a href="/" class="flex shrink-0 items-center gap-2.5">
+        {
+          hasLogo && (
+            <img
+              src={urlFor(settings.logo).width(80).height(80).url()}
+              alt={settings.orgName}
+              class="h-8 w-8 rounded-full object-cover"
+            />
+          )
+        }
+        {!hasLogo && <LogoMark class="h-8 w-8" />}
+        <span
+          class="font-display text-ink text-lg font-semibold tracking-tight transition-colors duration-300 group-data-[scrolled=false]:text-white"
+        >
+          {settings.orgName}
+        </span>
+      </a>
+
+      <nav class="hidden items-center gap-1 lg:flex" aria-label="Primary">
+        {
+          nav.map((item) => (
+            <div class="group/item relative">
+              <a
+                href={item.href || '#'}
+                class="text-ink/80 hover:text-saffron flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium transition-colors duration-300 group-data-[scrolled=false]:text-white/85 group-data-[scrolled=false]:hover:text-white"
+              >
+                {item.label}
+                {item.children?.length ? <Icon name="chevron-down" class="h-3.5 w-3.5" /> : null}
+              </a>
+              {item.children?.length ? (
+                <div class="invisible absolute top-full left-1/2 w-64 -translate-x-1/2 pt-3 opacity-0 transition-all duration-200 group-hover/item:visible group-hover/item:opacity-100">
+                  <div class="border-ink/[0.06] shadow-lift rounded-2xl border bg-white p-2">
+                    {item.children.map((child) => (
+                      <a
+                        href={child.href}
+                        class="text-ink/80 hover:bg-mist hover:text-saffron block rounded-xl px-4 py-2.5 text-sm transition-colors"
+                      >
+                        {child.label}
+                      </a>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ) : null}
-          </div>
-        ))
-      }
-    </nav>
+              ) : null}
+            </div>
+          ))
+        }
+      </nav>
 
-    <div class="hidden lg:block">
-      <Button href="/get-involved" size="md">Get Involved</Button>
-    </div>
+      <div class="hidden lg:block">
+        <Button href="/get-involved" size="md">Get Involved</Button>
+      </div>
 
-    <button
-      data-nav-toggle
-      type="button"
-      aria-label="Toggle menu"
-      aria-expanded="false"
-      class="text-ink -mr-2 flex h-11 w-11 items-center justify-center rounded-full transition-colors group-data-[scrolled=false]:text-white lg:hidden"
-    >
-      <Icon name="menu" class="h-6 w-6" />
-    </button>
-  </Container>
+      <button
+        data-nav-toggle
+        data-open="false"
+        type="button"
+        aria-label="Toggle menu"
+        aria-expanded="false"
+        aria-controls="mobile-nav-panel"
+        class="group/toggle text-ink relative -mr-2 flex h-11 w-11 items-center justify-center rounded-full transition-colors duration-300 group-data-[scrolled=false]:text-white lg:hidden"
+      >
+        {
+          /* Two icons stacked and cross-faded/rotated by the button's own
+             data-open state, rather than swapping the icon in JS — this is
+             the "smooth animation" the toggle was missing. Centered with
+             inset-0 + m-auto (not flex, since flex alignment doesn't apply
+             to absolutely positioned children) so it holds up regardless
+             of what's around it. */
+        }
+        <Icon
+          name="menu"
+          class="absolute inset-0 m-auto h-6 w-6 transition-all duration-300 ease-out group-data-[open=true]/toggle:rotate-45 group-data-[open=true]/toggle:opacity-0"
+        />
+        <Icon
+          name="close"
+          class="absolute inset-0 m-auto h-6 w-6 -rotate-45 opacity-0 transition-all duration-300 ease-out group-data-[open=true]/toggle:rotate-0 group-data-[open=true]/toggle:opacity-100"
+        />
+      </button>
+    </Container>
+  </div>
 
   <div
+    id="mobile-nav-panel"
     data-nav-panel
     data-open="false"
-    class="bg-mist fixed inset-0 top-[76px] z-40 hidden translate-y-[-8px] overflow-y-auto opacity-0 transition-all duration-300 ease-out data-[open=true]:flex data-[open=true]:translate-y-0 data-[open=true]:flex-col data-[open=true]:opacity-100 lg:hidden"
+    class="bg-white invisible fixed inset-0 top-[76px] z-40 flex -translate-y-2 flex-col overflow-y-auto opacity-0 transition-[opacity,transform,visibility] duration-300 ease-out data-[open=true]:visible data-[open=true]:translate-y-0 data-[open=true]:opacity-100 lg:hidden"
   >
     <Container class="flex flex-1 flex-col gap-1 py-8">
       {

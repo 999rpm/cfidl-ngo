@@ -31,7 +31,8 @@ export type IconName =
   | 'calendar'
   | 'download'
   | 'check'
-  | 'sparkle';
+  | 'info'
+  | 'image';
 
 const { name, class: className = '', strokeWidth = 1.75 } = Astro.props as Props;
 
@@ -74,7 +75,12 @@ const paths: Record<IconName, string> = {
   download:
     '<path d="M12 4v11m0 0l4-4m-4 4l-4-4"/><path d="M5 17v2a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-2"/>',
   check: '<path d="M5 13l4 4 10-10"/>',
-  sparkle: '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/>',
+  // Added to replace the last three uses of the "sparkle" icon (see
+  // SESSION_LOG.md, Round 3) — a plain info-circle for the contact form's
+  // config notice, and a picture frame for a missing-image placeholder.
+  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><circle cx="12" cy="7.8" r="0.9" fill="currentColor" stroke="none"/>',
+  image:
+    '<rect x="4" y="5" width="16" height="14" rx="2"/><circle cx="9" cy="10" r="1.5"/><path d="M4.5 16.5l4.5-4 4 3.2 3-2.7 4 3.5"/>',
 };
 ---
 

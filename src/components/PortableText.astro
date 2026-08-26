@@ -38,6 +38,21 @@ function escapeAttr(str: string): string {
   return escapeHtml(str).replace(/"/g, '&quot;');
 }
 
+/**
+ * Link annotations come straight from Studio content, typed freely into a
+ * URL field. escapeAttr() alone only makes a value *safe to place inside*
+ * an HTML attribute — it doesn't stop the value from being a
+ * `javascript:` URI, which a browser will still execute on click. This
+ * allowlists the schemes we actually expect (http/https/mailto/tel, or a
+ * relative/anchor link) and falls back to a harmless '#' for anything
+ * else, as defence-in-depth against a compromised or mistaken editor
+ * entry — not a response to any known live exploit.
+ */
+function sanitizeHref(href: string): string {
+  const trimmed = href.trim();
+  return /^(https?:|mailto:|tel:|\/|#)/i.test(trimmed) ? trimmed : '#';
+}
+
 function renderSpans(children: Span[] = [], markDefs: MarkDef[] = []): string {
   return children
     .map((span) => {
@@ -46,7 +61,8 @@ function renderSpans(children: Span[] = [], markDefs: MarkDef[] = []): string {
         const linkDef = markDefs.find((d) => d._key === mark && d._type === 'link');
         if (linkDef) {
           const target = linkDef.newTab ? ' target="_blank" rel="noopener noreferrer"' : '';
-          text = `<a href="${escapeAttr(linkDef.href || '#')}" class="link-thread text-saffron"${target}>${text}</a>`;
+          const href = escapeAttr(sanitizeHref(linkDef.href || '#'));
+          text = `<a href="${href}" class="link-thread text-saffron"${target}>${text}</a>`;
         } else if (mark === 'strong') {
           text = `<strong>${text}</strong>`;
         } else if (mark === 'em') {

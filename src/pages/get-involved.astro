@@ -22,7 +22,7 @@ const page = await getGetInvolvedPage();
               class="border-ink/[0.06] bg-mist flex flex-col rounded-2xl border p-8"
             >
               <div class="bg-saffron/10 text-saffron flex h-11 w-11 items-center justify-center rounded-full">
-                <Icon name="sparkle" class="h-5 w-5" />
+                <Icon name={way.icon ?? 'community'} class="h-5 w-5" />
               </div>
               <h3 class="font-display text-ink mt-5 text-xl font-semibold">{way.title}</h3>
               <p class="text-muted mt-3 flex-1 text-sm leading-relaxed">{way.description}</p>

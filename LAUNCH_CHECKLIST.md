@@ -1,80 +1,74 @@
 # CFIDL site — launch checklist
 
-Everything left to do to take this from "builds with placeholder content"
-to "live, on-brand, and taking real submissions." Work through it roughly
-in order — later steps assume earlier ones are done. Tick items off as you
-go.
+The complete sequence, start to finish: apply this session's fixes, swap
+every placeholder for the real thing, connect Sanity/Formspree/Zoho, and
+deploy. Work through it in order — later steps assume earlier ones are
+done. Tick items off as you go.
 
-This is the *sequence*. For "what file do I touch if X breaks," see
-`PROJECT_GUIDE.md` instead — the two are meant to be used together.
+For "what file do I touch if X breaks/needs changing" instead of "what
+order do I do things in," see `PROJECT_GUIDE.md` — the two are meant to be
+used together.
 
 ---
 
-## 0. Apply this session's changes (round 1 — brand + Sanity bug)
+## Step 0 — Apply this session's changes (Round 3)
 
-- [ ] Replace `src/styles/global.css` with the version in this delivery
-      (full rebrand: colours, headings, eyebrow labels).
-- [ ] Apply the three edits in `PATCHES.md` items 1–3
-      (`stories/[slug].astro`, `stories/category/[category].astro`,
-      `index.astro`), and item 4 (`about.astro`, the sparkle icon) if you'd
-      like the AI-tell fix.
-- [ ] Update fonts in `package.json` — remove the two no-longer-used
-      packages, add Roboto:
-      ```bash
-      npm uninstall @fontsource-variable/fraunces @fontsource/manrope
-      npm install @fontsource/roboto
-      ```
-- [ ] Stop `npm run dev` if it's running, then start it again fresh
-      (`npm run dev`) — this matters, see step 1 below.
-- [ ] Visually check a few pages. If anything still shows an old orange/
-      gold/brown that doesn't match `#DD5E34` / `#D4C26B`, that component
-      has a hardcoded colour — search the codebase for the old hex values
-      (`c1531a`, `f2a53c`, `2c4a63`, `6e5a45`) to find it.
+- [ ] Replace these 12 files with the versions in this delivery (all full
+      files — no find/replace needed, see `PATCHES.md` for why):
+      `src/components/layout/Header.astro`, `src/scripts/nav.ts`,
+      `public/favicon.svg`, `src/components/ui/Icon.astro`,
+      `src/components/forms/ContactForm.astro`,
+      `src/pages/get-involved.astro`, `src/components/cards/StoryCard.astro`,
+      `schemaTypes/documents/getInvolvedPage.ts`,
+      `src/lib/sanity/queries.ts`, `src/env.d.ts`,
+      `src/components/PortableText.astro`, `package.json`.
+- [ ] Run `npm install` — `package.json` now lists `@sanity/icons`
+      explicitly (it worked before this via hoisting, but wasn't declared;
+      see `SESSION_LOG.md`, Round 3). This regenerates `package-lock.json`
+      for you; don't hand-edit the lockfile.
+- [ ] Restart `npm run dev` fully (stop it, start it again) rather than
+      relying on hot-reload — several of today's changes touch how
+      `Header.astro` and `nav.ts` attach event listeners.
+- [ ] **Test the mobile menu specifically**, on an actual narrow viewport
+      or your browser's device toolbar: 1. Load a page, open the menu before scrolling — should work (this
+      part was never broken). 2. Close it, scroll down the page, open it again — this is the part
+      that was broken. Confirm the panel actually appears. 3. With the panel open (or after opening and closing it once) after
+      scrolling, confirm every other element on the page — header nav
+      links, buttons, the footer newsletter form — is still clickable.
+      This combination (scroll, then click something else) is exactly
+      what was broken before. 4. Watch the hamburger icon itself — it should morph into an X when
+      open, not just show a static hamburger the whole time. 5. If anything above still doesn't behave, open the browser console
+      (F12) before testing, and send me any red error text — that
+      would mean there's a second, different problem stacked on top of
+      the one fixed this round.
+- [ ] Check the browser tab's favicon — should now show the same
+      saffron/marigold mark as the logo in the header/footer, not the old
+      plain orange one. (Browsers cache favicons aggressively — hard
+      refresh, or check in a private/incognito window, if it looks
+      unchanged.)
+- [ ] If/when you add real "Get Involved" content in Studio, note each
+      "way" now has its own **Icon** dropdown (Community / Business /
+      Financier / Government) — pick whichever fits.
 
-## 0b. Apply this session's changes (round 2 — the 5 bugs from testing)
+## Step 1 — Confirm Rounds 1–2 are already live
 
-- [ ] Replace `src/layouts/BaseLayout.astro`, `src/components/sections/
-      Hero.astro`, and `src/components/sections/DiamondModel.astro` with
-      the versions in this delivery (full files — safe to use even if you
-      hadn't gotten to round 1's `global.css` yet, since this delivery's
-      `global.css` supersedes that one).
-- [ ] Apply `PATCHES.md` item 5 (`Header.astro`, two `bg-mist` → `bg-white`
-      swaps).
-- [ ] Restart `npm run dev` again (the script tags in `BaseLayout.astro`
-      changed, and dev servers don't always pick up `<script>` structure
-      changes on hot-reload the way they do CSS).
-- [ ] Test the mobile hamburger menu on an actual narrow viewport (or your
-      browser's device toolbar). If it still doesn't open, open the
-      browser console (F12) before clicking it, click it, and note any red
-      error text — that pins down the real cause immediately, since this
-      round's fix addresses the most likely cause but wasn't verified
-      against your live dev server.
-- [ ] Test the homepage hero slideshow for a good ~30–60 seconds to confirm
-      the crossfade is now gap-free.
-- [ ] Check the Diamond Model section (homepage, and the Approach page) at
-      a few different browser widths — the card-overlap fix was tuned
-      against an estimated card height; if your actual stakeholder
-      descriptions run noticeably longer than the placeholder text, the top
-      card may need a little more clearance (`top: 20` → `top: 22` or so,
-      in `DiamondModel.astro`'s `positions` array).
+These were verified against your actual pasted source this session (see
+`PATCHES.md`) — this is just a quick visual double-check, not new work:
 
-## 1. Fix the "publish breaks the site" issue (from round 1, if not yet resolved)
+- [ ] Brand colours (`#DD5E34` saffron, `#D4C26B` marigold) show correctly
+      site-wide, headings are in Roboto Black.
+- [ ] Page background is white, not peach/cream.
+- [ ] Homepage hero slideshow crossfades smoothly with no black flash
+      between photos.
+- [ ] Diamond Model cards (homepage + Approach page) don't overlap the
+      text above them.
+- [ ] The hero no longer shows a "Scroll" text label (just the fading
+      line).
 
-- [ ] **Try a hard refresh first, then a full dev-server restart**
-      (`Ctrl+C`, then `npm run dev` again). Sanity's own docs note that
-      the embedded Studio shares Astro's dev server, and file-watching /
-      HMR events — which a publish can trigger — can "momentarily disrupt
-      the Studio"; a refresh is the documented fix. If your `.env` changed
-      at all recently, only a full restart picks that up — Vite does not
-      hot-reload environment variables.
-- [ ] Apply the two `getStaticPaths` patches (`PATCHES.md` items 1–2) —
-      belt-and-suspenders fix for a real, if narrow, gap.
-- [ ] If it still breaks after both of those: open the browser console
-      (F12 → Console) and the terminal running `npm run dev`, reproduce
-      it, and save the exact error text — that will point at the real
-      cause immediately.
+If any of these look wrong, something didn't get applied correctly —
+compare against `SESSION_LOG.md` Rounds 1–2 for what should be in place.
 
-## 2. Placeholder assets to replace
+## Step 2 — Placeholder assets to replace
 
 All of these currently show clearly-flagged placeholder content, so the
 site never looks broken while you work through them — but none of them
@@ -82,11 +76,12 @@ should go live as-is.
 
 - [ ] **Logo** — Studio → Site Settings → Logo (+ optional Logo Dark for
       the dark header/footer). Until set, the site shows an abstract
-      marigold-bloom mark (`src/components/ui/LogoMark.astro`) — it will
-      already pick up your new colours automatically, so it's a fine
-      placeholder while you sort a real logo, not an emergency.
-- [ ] **Favicon** — Studio → Site Settings → Favicon, *or* replace
-      `public/favicon.svg` directly.
+      marigold-bloom mark (`src/components/ui/LogoMark.astro`) in your new
+      brand colours — a fine placeholder while you sort a real logo, not
+      an emergency. **If you do replace it, also update
+      `public/favicon.svg` by hand** — it's a static file that can't pull
+      from Studio or from the CSS colour tokens the way the in-app logo
+      does.
 - [ ] **Hero photography** — Studio → Home Page → Hero background
       slideshow (3–7 landscape photos). Until set, it falls back to
       Wikimedia Commons stock photos of rural Bangladesh — confirm each
@@ -103,18 +98,22 @@ should go live as-is.
 - [ ] **Team / Press / Publications** — currently empty states ("no
       entries yet"). Add real ones in Studio if/when you have them; not
       blocking for launch.
+- [ ] **"Get Involved" card icons** — the three fallback cards (Fund a
+      programme / Partner with us / Share your expertise) already have
+      sensible icons picked (financier / business / community). If you
+      change or add ways to get involved in Studio, set each one's icon
+      to whichever of the four fits.
 
-## 3. Connect Sanity (content)
+## Step 3 — Connect Sanity (content)
 
 - [ ] Create a free project at sanity.io/get-started, or from this folder
       run `npx sanity@latest init` and choose "use existing schema" (it
       will detect `schemaTypes/`).
 - [ ] Copy the **Project ID** from manage.sanity.io → your project →
       Project settings, into `.env`:
-      ```
-      PUBLIC_SANITY_PROJECT_ID=your-project-id
-      PUBLIC_SANITY_DATASET=production
-      ```
+      `     PUBLIC_SANITY_PROJECT_ID=your-project-id
+    PUBLIC_SANITY_DATASET=production
+    `
 - [ ] manage.sanity.io → your project → API → CORS Origins → add
       `http://localhost:4321` (or whatever port `npm run dev` prints) with
       **Allow credentials** checked. Add your production URL here too once
@@ -125,16 +124,23 @@ should go live as-is.
       Page**, **Approach Page**, **Get Involved Page**, **Contact Page**,
       then add a few **Stories**.
 - [ ] **Set up the rebuild webhook** (easy to miss): because the site is
-      statically generated, publishing in Studio does *not* instantly
-      update the *deployed* site — only your local dev server sees changes
+      statically generated, publishing in Studio does _not_ instantly
+      update the _deployed_ site — only your local dev server sees changes
       immediately. In Sanity: Project settings → API → Webhooks, add one
       that calls your host's deploy hook on publish (Vercel: Project
       Settings → Git → Deploy Hooks, create one, paste its URL into the
       Sanity webhook). Without this, "I published but the live site didn't
-      change" will happen again — on the real site this time, not `npm run
-      dev`.
+      change" will happen — on the real site this time, not `npm run dev`.
+- [ ] If Studio itself misbehaves right after publishing (content looks
+      stale, or the Studio UI glitches), try a hard refresh first, then a
+      full `npm run dev` restart. Sanity's own docs note the embedded
+      Studio shares Astro's dev server, and file-watching/HMR events —
+      which a publish can trigger — can momentarily disrupt the Studio; a
+      refresh is the documented fix. If `.env` changed recently, only a
+      full restart picks that up — Vite doesn't hot-reload environment
+      variables.
 
-## 4. Connect Formspree (contact form)
+## Step 4 — Connect Formspree (contact form)
 
 - [ ] Create a form at formspree.io (free plan covers a low-traffic
       contact form).
@@ -144,9 +150,11 @@ should go live as-is.
 - [ ] In Formspree's dashboard, point the notification email at a real
       CFIDL inbox.
 - [ ] `/contact` works immediately after this — no rebuild needed, since
-      Formspree is called directly from the visitor's browser.
+      Formspree is called directly from the visitor's browser. (Until this
+      is set, the form shows a small "not connected yet" notice — that's
+      expected, and now uses a plain info icon rather than a sparkle.)
 
-## 5. Connect Zoho (org email + newsletter sending)
+## Step 5 — Connect Zoho (org email + newsletter sending)
 
 - [ ] Sign up at zoho.com/mail, add your domain, and add the MX / SPF /
       DKIM (and ideally DMARC) records it gives you at your DNS host —
@@ -158,24 +166,25 @@ should go live as-is.
       accounts.zoho.com → Security → App Passwords — use that, not your
       normal password.
 - [ ] Add to `.env`:
-      ```
-      ZOHO_SMTP_HOST=smtp.zoho.com
-      ZOHO_SMTP_PORT=465
-      ZOHO_SMTP_SECURE=true
-      ZOHO_SMTP_USER=you@cfidl.org
-      ZOHO_SMTP_PASSWORD=your-app-specific-password
-      ZOHO_NOTIFY_TO=info@cfidl.org
-      NEWSLETTER_FROM_NAME=CFIDL
-      ```
+      `     ZOHO_SMTP_HOST=smtp.zoho.com
+    ZOHO_SMTP_PORT=465
+    ZOHO_SMTP_SECURE=true
+    ZOHO_SMTP_USER=you@cfidl.org
+    ZOHO_SMTP_PASSWORD=your-app-specific-password
+    ZOHO_NOTIFY_TO=info@cfidl.org
+    NEWSLETTER_FROM_NAME=CFIDL
+    `
       EU data centre → `smtp.zoho.eu`; India data centre → `smtp.zoho.in`;
       some paid Workspace plans use `smtppro.zoho.com` instead — check
       Zoho Mail → Settings → Mail Accounts → POP/IMAP if the standard host
-      doesn't connect.
+      doesn't connect. (These are now type-checked in `src/env.d.ts`, so a
+      typo'd variable name will show up in `npm run typecheck` instead of
+      failing silently at send time.)
 - [ ] Test: `npm run dev`, submit the newsletter form in the footer,
       confirm both the subscriber confirmation and the internal
       notification email arrive.
 
-## 6. Deploy
+## Step 6 — Deploy
 
 - [ ] Push the repo to GitHub, import it in Vercel.
 - [ ] Vercel → Project Settings → Environment Variables → add every
@@ -191,7 +200,7 @@ should go live as-is.
       publish a small test edit in Studio and watch for a new deployment
       in Vercel.
 
-## 7. Final pass before you call it launched
+## Step 7 — Final pass before you call it launched
 
 - [ ] Every checkbox above is done.
 - [ ] Run `npm run typecheck` and `npm run build` locally — both should
@@ -199,9 +208,11 @@ should go live as-is.
 - [ ] Click every link in the header and footer nav on the live URL.
 - [ ] Submit both the contact form and the newsletter form for real and
       confirm the emails land.
-- [ ] Check the site on an actual phone — the mobile menu, hero
-      slideshow, and forms are the highest-risk spots for surprises, and
-      two of those (menu, slideshow) had real bugs found by testing this
-      round.
+- [ ] Check the site on an actual phone, in particular: - The mobile menu — open it, scroll, open it again, confirm the
+      rest of the page stays interactive throughout (this is the bug
+      fixed this round; worth a real-device check, not just desktop
+      devtools). - The hero slideshow, for a good 30–60 seconds. - The favicon in your phone's browser tab. - Both forms.
 - [ ] Skim `/privacy` and `/disclaimer` one more time to confirm they're
       your real, reviewed text and not the placeholder notice.
+- [ ] Skim the "Get Involved" page and confirm each card's icon actually
+      fits what it's describing.
